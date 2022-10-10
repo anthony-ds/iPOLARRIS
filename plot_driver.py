@@ -895,6 +895,9 @@ def make_single_pplots(rdat,config,y=None):
         os.makedirs(outdir,exist_ok=True)
  
         zmax = config['zmax']
+        if not config['cs_z'] == '': cs_over = True
+        else: cs_over = False
+
         st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
         en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
         if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
@@ -903,9 +906,9 @@ def make_single_pplots(rdat,config,y=None):
             else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' - '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
 
         if not zmax == '':
-            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'],zmax=zmax)
+            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'],zmax=zmax,cs_over=cs_over)
         else:
-            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'])
+            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'],cs_over=cs_over)
         
         nvars=0
         for var in eval(config['cfad_vars']):
@@ -945,9 +948,11 @@ def make_single_pplots(rdat,config,y=None):
         allvars = eval(config['cfad_vars'])
 
         zmax = config['zmax']
+        if not config['cs_z'] == '': cs_over = True
+        else: cs_over = False
+
         st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
         en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
-
         if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
         else:
             if st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
@@ -985,9 +990,9 @@ def make_single_pplots(rdat,config,y=None):
                         print(v)
 
                         if not zmax == '':
-                            cfad, hts, pl, fig, ax = rdat.cfad_plot(v,bins=rdat.cfbins[v],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                            cfad, hts, pl, fig, ax = rdat.cfad_plot(v,bins=rdat.cfbins[v],z_resolution=config['z_resolution'],levels=1,zmax=zmax,cs_over=cs_over)
                         else:
-                            cfad, hts, pl, fig, ax = rdat.cfad_plot(v,bins=rdat.cfbins[v],z_resolution=config['z_resolution'],levels=1)
+                            cfad, hts, pl, fig, ax = rdat.cfad_plot(v,bins=rdat.cfbins[v],z_resolution=config['z_resolution'],levels=1,cs_over=cs_over)
                             
                         ax.text(0,1,'{e} {r}'.format(e=rdat.exper,r=rdat.band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=ax.transAxes)
                         ax.text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left

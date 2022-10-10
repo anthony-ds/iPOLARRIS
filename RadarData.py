@@ -611,6 +611,7 @@ class RadarData(RadarConfig.RadarConfig):
 
    # Just a wrapper on the CSU radartools HID function
     def set_hid(self, band=None, use_temp=False, name='HID',zthresh = -9999.0,return_scores=False):
+        
         #        print zthresh
         #        print self.dz_name
         #       bad = self.data[self.dz_name].where(self.data[self.dz_name].values<zthresh)
@@ -1791,7 +1792,7 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
 
 
-    def cfad(self, var, value_bins=None, above=None, below=15.0, pick=None, ret_z=0,z_resolution=1.0,cscfad = None):
+    def cfad(self, var, value_bins=None, above=None, below=15.0, pick=None, ret_z=0,z_resolution=1.0,cs_over = None,cscfad = None):
     # pick a variable and do a CFAD for the cell
 
         if value_bins is None: # set a default if nothing is there
@@ -1837,30 +1838,29 @@ class RadarData(RadarConfig.RadarConfig):
 #             tei = self.get_ind(te,np.array(self.date))
 # 
 #        print 'cscfad',cscfad
-
-        if cscfad == 'convective':
-            #mask = np.where(self.raintype != 2)
-           mask= np.where(self.raintype != 2)
-           holddat = deepcopy(self.data[var].values)
-           self.data[var].values[mask] = np.nan
-#           print ('in conv'
-        elif cscfad == 'stratiform':
-           mask = np.where(self.raintype != 1)
-           holddat = deepcopy(self.data[var].values)
-           self.data[var].values[mask] = np.nan
-#           print ('in strat',type(self.data[var].data))
-        else:
-           mask = np.where(self.raintype > 100)
-     #      print('entering deep copy')
-           holddat = deepcopy(self.data[var].values)
-           holddat2 = deepcopy(self.data[var].values)
-           holddat2[mask] = np.nan
-           #self.data[var].values[mask] = np.nan
-           self.data[var].values = holddat2
-        #print('ready to go in loop!')
-        # if left blank, check the whole thing
         
-        
+        holddat = deepcopy(self.data[var].values)
+        if cs_over:
+            if cscfad == 'convective':
+                #mask = np.where(self.raintype != 2)
+               mask= np.where(self.raintype != 2)
+               self.data[var].values[mask] = np.nan
+    #           print ('in conv'
+            elif cscfad == 'stratiform':
+               mask = np.where(self.raintype != 1)
+               self.data[var].values[mask] = np.nan
+    #           print ('in strat',type(self.data[var].data))
+            else:
+               mask = np.where(self.raintype > 100)
+         #      print('entering deep copy')
+               holddat2 = deepcopy(self.data[var].values)
+               holddat2[mask] = np.nan
+               #self.data[var].values[mask] = np.nan
+               self.data[var].values = holddat2
+            #print('ready to go in loop!')
+            # if left blank, check the whole thing
+            
+            
         for ivl, vl in (enumerate(tqdm(looped[:-1]))):
             #print ivl, vl
 #             try:
@@ -1921,7 +1921,7 @@ class RadarData(RadarConfig.RadarConfig):
 
 #############################################################################################################
 
-    def cfad_multiplot(self, varlist=None, z_resolution=1.0, zmax=None, **kwargs):
+    def cfad_multiplot(self, varlist=None, z_resolution=1.0, cs_over=False, zmax=None, **kwargs):
 
         if varlist is not None:
             good_vars = varlist
@@ -1958,15 +1958,15 @@ class RadarData(RadarConfig.RadarConfig):
                 cbpanels = [ncols*n+2 for n in range(0,nrows)]
                 cbbool = True if i in cbpanels else False
                 if not var.startswith('HID'):
-                    self.cfad_plot(var,ax=axf[i],ylab=ylabbool,cbar=cbbool,bins=self.cfbins[var],levels=1,zmax=zmax,z_resolution=z_resolution)
+                    self.cfad_plot(var,ax=axf[i],ylab=ylabbool,cbar=cbbool,bins=self.cfbins[var],levels=1,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
                 else:
-                    self.plot_hid_cdf(ax=axf[i],ylab=ylabbool,zmax=zmax,z_resolution=z_resolution)
+                    self.plot_hid_cdf(ax=axf[i],ylab=ylabbool,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
        
         return fig, ax
 
 #############################################################################################################
 
-    def cfad_plot(self, var, cfad=None, hts=None, nbins=20, ax=None, maxval=10.0, above=None, below=15.0, bins=None, log=False, diff=False, pick=None, z_resolution=1.0, levels=None, cont=False, cscfad=False, cbar=1, xlab=1, ylab=1, zmax=8,**kwargs):
+    def cfad_plot(self, var, cfad=None, hts=None, nbins=20, ax=None, maxval=10.0, above=None, below=15.0, bins=None, log=False, diff=False, pick=None, z_resolution=1.0, levels=None, cont=False, cs_over=False, cscfad=False, cbar=1, xlab=1, ylab=1, zmax=8,**kwargs):
 
         from matplotlib.colors import from_levels_and_colors
 
@@ -1982,7 +1982,7 @@ class RadarData(RadarConfig.RadarConfig):
                 bins = np.arange(0.95,bins[-1],0.001)
         
         if not diff:
-            cfad,value_bins,hts = self.cfad(var, value_bins=bins, above=above, below=below, pick=pick, z_resolution=z_resolution,cscfad=cscfad,ret_z=1)
+            cfad,value_bins,hts = self.cfad(var, value_bins=bins, above=above, below=below, pick=pick, z_resolution=z_resolution, cs_over=cs_over, cscfad=cscfad,ret_z=1)
 
         if above is not None:
             bot_index, top_index = self._get_ab_incides(above=above, below=below)
@@ -2225,7 +2225,7 @@ class RadarData(RadarConfig.RadarConfig):
         return plt
 #############################################################################################################
 
-    def vertical_hid_volume(self, hid_nums, z_resolution=1.0, above=None, below=None, pick=None, cscfad = None):
+    def vertical_hid_volume(self, hid_nums, z_resolution=1.0, above=None, below=None, pick=None, cs_over = False, cscfad = None):
         # This function only returns the height and volume arrays, no plotting
         if above is None:
             above = 0
@@ -2236,19 +2236,20 @@ class RadarData(RadarConfig.RadarConfig):
         #bot_index, top_index = self._get_ab_incides(above=above, below=below)
         #data = self._pick_data(self.data[self.hid_name].data, pick)
         #print above,below,np.shape(self.data[self.hid_name].data)
-        if cscfad == 'convective':
-            mask= np.where(self.raintype != 2)
-            holddat = deepcopy(self.data[self.hid_name].values)
-            self.data[self.hid_name].values[mask] = -1
-#            print 'in conv'
-        elif cscfad == 'stratiform':
-            mask= np.where(self.raintype != 1)
-            holddat = deepcopy(self.data[self.hid_name].values)
-            self.data[self.hid_name].values[mask] = -1
-#            print 'in strat'
-        else:
-            mask = np.where(self.raintype < 100)
-        
+        holddat = deepcopy(self.data[self.hid_name].values)
+        if cs_over:
+
+            if cscfad == 'convective':
+                mask= np.where(self.raintype != 2)
+                self.data[self.hid_name].values[mask] = -1
+    #            print 'in conv'
+            elif cscfad == 'stratiform':
+                mask= np.where(self.raintype != 1)
+                self.data[self.hid_name].values[mask] = -1
+    #            print 'in strat'
+            else:
+                mask = np.where(self.raintype < 100)
+            
 #        print(below,above)
         data = self.data[self.hid_name].sel(z=slice(above,below)).values
         
@@ -2305,8 +2306,7 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
 #############################################################################################################
 
-    def hid_vertical_fraction(self, hid_nums, z_resolution=1.0, above=None, below=None, pick=None,cscfad = None):
-
+    def hid_vertical_fraction(self, hid_nums, z_resolution=1.0, above=None, below=None, pick=None,cs_over = False,cscfad = None):
 
         if np.mod(z_resolution, self.dz) != 0:
             print ('Need even multiple of vertical resolution: %.1f'%self.dz)
@@ -2323,7 +2323,7 @@ class RadarData(RadarConfig.RadarConfig):
             # This gives the percent of the storm that is taken up by the combo of HID values
         hid_nums = np.asarray(hid_nums)
 
-        hidcdf,hts = self.hid_cdf(z_resolution=z_resolution, cscfad = cscfad)
+        hidcdf,hts = self.hid_cdf(z_resolution=z_resolution, cs_over = cs_over, cscfad = cscfad)
         hvf = np.zeros(hidcdf.shape[1])
 #        print 'hvf in hvf', np.shape(hvf)
     # now loop thru each hid_num
@@ -2338,7 +2338,7 @@ class RadarData(RadarConfig.RadarConfig):
 
 #############################################################################################################
 
-    def hid_cdf(self, z_resolution=1.0, pick=None,cscfad = None):
+    def hid_cdf(self, z_resolution=1.0, pick=None,cs_over=False, cscfad = None):
         # vertical HID_cdf with bar plots I think
         if np.mod(z_resolution, self.dz) != 0:
             print ('Need even multiple of vertical resolution: %.1f'%self.dz)
@@ -2348,7 +2348,7 @@ class RadarData(RadarConfig.RadarConfig):
         all_vols = []
         for sp in range(len(self.species)):
             
-            hts, dat = self.vertical_hid_volume([sp+1], z_resolution=z_resolution, pick=pick,cscfad = cscfad)
+            hts, dat = self.vertical_hid_volume([sp+1], z_resolution=z_resolution, pick=pick,cs_over=cs_over, cscfad = cscfad)
             all_vols.append(dat) # need the +1
             
 
@@ -2386,14 +2386,14 @@ class RadarData(RadarConfig.RadarConfig):
          
         return cb
 
-    def plot_hid_cdf(self, ax=None, xlab=1, ylab=1, zmax=None, cbar=1, data=None, z_resolution=1.0, pick=None,cscfad = None):
+    def plot_hid_cdf(self, ax=None, xlab=1, ylab=1, zmax=None, cbar=1, data=None, z_resolution=1.0, pick=None, cs_over = False, cscfad = None):
         
         ts=np.array(self.date)[0]
         if data is not None:
             pass
         else:
             pass
-            data,hgt = self.hid_cdf(z_resolution=z_resolution, pick=pick,cscfad = cscfad)
+            data,hgt = self.hid_cdf(z_resolution=z_resolution, pick=pick,cs_over = False,cscfad = cscfad)
         if ax is None:
             fig = plt.figure(figsize=(10,8))
             ax = fig.add_subplot(111)
@@ -2754,6 +2754,7 @@ class RadarData(RadarConfig.RadarConfig):
     
     #############################################################################################################
     def calc_cs_shy(self,cs_z=2.0):
+
         print ('Unfortunately have to run the convective stratiform per timestep. Might take a minute....{n}'.format(n=self.data.dims['d']))
         rntypetot = []
 #        print(cs_z,'cs_z in 2424')
@@ -2915,10 +2916,11 @@ class RadarData(RadarConfig.RadarConfig):
         import cartopy.crs as ccrs 
         
         dat = deepcopy(self.data[var].sel(d=time))
-        whbad = np.where(self.data['CSS'].sel(d=time).values<0)
-        dat.values[whbad] = np.nan
-        dat = np.squeeze(dat.values)
-        dzcomp = np.nanmax(dat,axis=0)
+        if cs_over:
+            whbad = np.where(self.data['CSS'].sel(d=time).values<0)
+            dat.values[whbad] = np.nan
+        arrdat = np.squeeze(dat.values)
+        dzcomp = np.nanmax(arrdat,axis=0)
 
         if not self.lat_name in self.data.keys():
             print('No latitude. Calculating....')
@@ -2940,7 +2942,7 @@ class RadarData(RadarConfig.RadarConfig):
         
         cb = ax.pcolormesh(lons,lats,dzcomp,vmin=self.lims[var][0],vmax=self.lims[var][1],cmap=self.cmaps[var],transform=ccrs.PlateCarree())
        
-        if cs_over == True: 
+        if cs_over: 
             cs_arr = np.squeeze(np.nanmax(np.squeeze(self.data['CSS'].sel(d=time).values),axis=0))
             ax.contour(lons,lats,cs_arr,levels=[0,1,2,3],linewidths=3,colors=['black','black'],transform=ccrs.PlateCarree())
             

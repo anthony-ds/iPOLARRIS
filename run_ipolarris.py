@@ -287,10 +287,12 @@ else:
             
         outdir = config['image_dir']+'composite_'+rdata.names_uc[rdata.dz_name]+'/'
         os.makedirs(outdir,exist_ok=True)
+        if not config['cs_z'] == '': cs_over = True
+        else: cs_over = False
       
         for i,rtimematch in enumerate(np.array(rdata.date)):
 
-            fig, ax = rdata.plot_composite(rdata.dz_name,i,statpt=True)
+            fig, ax = rdata.plot_composite(rdata.dz_name,i,cs_over=cs_over,statpt=True)
             ax.text(0, 1, '{e} {r}'.format(e=rdata.exper,r=rdata.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
             ax.text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=rtimematch), horizontalalignment='right', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
            

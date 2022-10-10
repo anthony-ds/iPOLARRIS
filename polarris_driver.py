@@ -456,8 +456,9 @@ def polarris_driver(configfile):
         rdata.mask_model()
     
     rdata.calc_pol_analysis(tm,config)
-    rdata.calc_cs_shy(cs_z=config['cs_z'])
-    rdata.raintype=rdata.data['CSS'].values
+    if not config['cs_z'] == '':
+        rdata.calc_cs_shy(cs_z=config['cs_z'])
+        rdata.raintype=rdata.data['CSS'].values
     
     if config['comb_vicr']:
         whvi = np.where(rdata.hid == 6)
