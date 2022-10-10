@@ -596,12 +596,23 @@ class RadarData(RadarConfig.RadarConfig):
    ############ Here is calling CSU radartools for HID, RR, etc... ############################
 #############################################################################################################
     def calc_pol_analysis(self,tm,config,**kwargs):
-        self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores)
-        print("running pol rain")
-        #if self.mphys == 'obs':
         
-        self.calc_qr_pol()
-        self.calc_rr_pol(tm,config,**kwargs)
+        import time
+        
+        start = time.time()
+        self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores)
+        print('HID runtime = '+str(time.time()-start))
+        
+        if self.mphys == 'obs':
+
+            print("running pol rain")
+            start = time.time()
+            self.calc_qr_pol()
+            print('QR runtime = '+str(time.time()-start))
+
+            start = time.time()
+            self.calc_rr_pol(tm,config,**kwargs)
+            print('RR runtime = '+str(time.time()-start))
 
 
 #############################################################################################################
@@ -686,6 +697,8 @@ class RadarData(RadarConfig.RadarConfig):
         ###Calculate the mixing ratios and add to the radar object
 
     def calc_qr_pol(self):
+
+        import time
     ### This is where I do mixing ratio calculations ### 
         #print self.band
         #print self.expr
@@ -737,8 +750,6 @@ class RadarData(RadarConfig.RadarConfig):
             #print ('Your wavelength has not been run yet! Please return to fundamentals.')
             return
             
-
-
         dbzz = np.ma.masked_less(self.data[self.dz_name].values,35)
         kdpp = np.ma.masked_where(dbzz.mask,self.data[self.kdp_name].values)
 
@@ -753,6 +764,7 @@ class RadarData(RadarConfig.RadarConfig):
         dbzzz = 0.0
         
         print('Masking data')
+        start = time.time()
         kdp_notmet = np.ma.masked_greater_equal(self.data[self.kdp_name].values,0.2)
         dbz_notmet = np.ma.masked_where(kdp_notmet.mask,self.data[self.dz_name].values)
 
@@ -769,26 +781,30 @@ class RadarData(RadarConfig.RadarConfig):
         kdp_notmett = 0.0
         dbz_notmettt=0.0
         kdp_notmettt=0.0
-        
+        print(time.time()-start)
         print('got Kdp')
-        
+        start = time.time() 
         M_Z.set_fill_value(0.0)
         M_Kdp.set_fill_value(0.0)
         lwccc = M_Z.filled()+M_Kdp.filled()
         qrr = lwccc/1.225
         qrr = np.ma.masked_less_equal(qrr,0.0)
-
+        print(time.time()-start)
         print("Made through calculations, saving data")
+        start = time.time()
         self.add_field((self.data[self.dz_name].dims,qrr,), 'rqr')
-
+        print(time.time()-start)
         print('saved data')
+
+
     def calc_rr_pol(self,tm,config,band=None):
 
 #        import pydisdrometer as pyd
 #        import pytmatrix as pyt
         import csu_blended_rain_julie
+        import time
 
-    ### This is where I do mixing ratio calculations ### 
+        ### This is where I do mixing ratio calculations ### 
         if band == None:
             band = self.band
         
@@ -869,8 +885,10 @@ class RadarData(RadarConfig.RadarConfig):
         else:
             print ('Sorry, your wavelength has not been run yet! Return to first principles!')
             return
-
+        
+        start = time.time()
         rr_arr,rm = csu_blended_rain_julie.csu_hidro_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band,fhc=self.hid)
+        print(time.time()-start)
         #rr_arr,rm = csu_blended_rain_julie.calc_blended_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,None,None,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band)
 #         mask=np.where(np.isnan(self.data[self.dz_name].values))
 #         rr[mask]=np.nan
