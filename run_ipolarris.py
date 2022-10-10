@@ -312,7 +312,7 @@ else:
             st = rdata.date[0].strftime('%Y%m%d_%H%M%S')
             en = rdata.date[-1].strftime('%Y%m%d_%H%M%S')
            
-            os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdata.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_{t1}-{t2}.mp4'.format(p=config['ptype'],e=rdata.exper,i=outdir,v=rdata.dz_name,t1=st,t2=en))
+            os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdata.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_{t1}-{t2}.mp4'.format(p=config['ptype'],e=rdata.exper,i=outdir,v=rdata.dz_name,t1=st,t2=en))
 
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
@@ -359,7 +359,7 @@ else:
                 st = rdata.date[0].strftime('%Y%m%d_%H%M%S')
                 en = rdata.date[-1].strftime('%Y%m%d_%H%M%S')
 
-                os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdata.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdata.exper,i=outdir,v=rdata.rr_name,t1=st,t2=en,h=z))
+                os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdata.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdata.exper,i=outdir,v=rdata.rr_name,t1=st,t2=en,h=z))
             
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')

@@ -1177,7 +1177,7 @@ def make_single_pplots(rdat,config,y=None):
                 st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
                 en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
 
-                os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=z))
+                os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=z))
                 
                 plt.close()
    
@@ -1237,7 +1237,7 @@ def make_single_pplots(rdat,config,y=None):
                         st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
                         en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
 
-                        os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=z))
+                        os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=z))
                     
             print('')
 
@@ -1294,7 +1294,7 @@ def make_single_pplots(rdat,config,y=None):
                 st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
                 en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
 
-                os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=y))
+                os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=y))
             
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
@@ -1351,7 +1351,7 @@ def make_single_pplots(rdat,config,y=None):
                         st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
                         en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
 
-                        os.system('ffmpeg -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=y))
+                        os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=y))
 
             print('')
 
