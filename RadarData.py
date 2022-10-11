@@ -128,13 +128,13 @@ class RadarData(RadarConfig.RadarConfig):
         # down here goes some zdr checking
         self.zdr_offset = 0 # initialize as 0
         try:
-            self.top_index = np.where(self.data[self.z_name]== max(self.data[self.z_name]))[self.zind]
+            self.top_index = np.where(self.data[self.z_name]== np.max(self.data[self.z_name]))[self.zind]
         except:
-            self.top_index = np.where(self.data[self.z_name]== max(self.data[self.z_name]))[0]
+            self.top_index = np.where(self.data[self.z_name]== np.max(self.data[self.z_name]))[0]
         try:
-            self.bot_index = np.where(self.data[self.z_name]== min(self.data[self.z_name]))[self.zind]
+            self.bot_index = np.where(self.data[self.z_name]== np.min(self.data[self.z_name]))[self.zind]
         except:
-            self.bot_index = np.where(self.data[self.z_name]== min(self.data[self.z_name]))[0]
+            self.bot_index = np.where(self.data[self.z_name]== np.min(self.data[self.z_name]))[0]
 
 #         if hasattr(self.nc,'Latitude_deg') == True:
 #             print 'Getting attribute!'
@@ -658,8 +658,8 @@ class RadarData(RadarConfig.RadarConfig):
             #whbad = np.where(np.logical_and(hiddum ==1,tdum <-5.0))
             if tdum.any() == None: whbad = np.where(np.logical_and(hiddum == 1,tdum == None))
             else: whbad = np.where(np.logical_and(hiddum == 1,tdum < -5.0))
-            dzmask = np.where(np.isnan(dzhold))
             hiddum[whbad] = -1
+            dzmask = np.where(np.isnan(dzhold))
             hiddum = np.array(hiddum,dtype='float64')
             hiddum[dzmask] =np.nan
             hid.append(hiddum)
@@ -896,9 +896,9 @@ class RadarData(RadarConfig.RadarConfig):
 
         self.add_field((self.data[self.dz_name].dims,rr_arr,),self.rr_name)
         self.add_field((self.data[self.dz_name].dims,rm,),'RRM')
-        whbad = np.where(np.isnan(self.data[self.dz_name]))
-        self.data[self.rr_name].values[whbad]=np.nan
-        self.data['RRM'].values[whbad]=-1
+        #whbad = np.where(np.isnan(self.data[self.dz_name])) #<<< attempt to speed up by commenting
+        #self.data[self.rr_name].values[whbad]=np.nan #<<<
+        #self.data['RRM'].values[whbad]=-1 #<<<
         
         it = self.data[self.rr_name].shape[0]
         print('\nSaving RR to files...')
@@ -1166,7 +1166,7 @@ class RadarData(RadarConfig.RadarConfig):
 
     def get_ind(self,val,dat):
         dum = abs(val - dat)
-        wh_t = np.squeeze(np.where(dum == min(dum)))
+        wh_t = np.squeeze(np.where(dum == np.min(dum)))
         try:
             t = (len(wh_t))
             if t==1:
@@ -1210,8 +1210,8 @@ class RadarData(RadarConfig.RadarConfig):
                 xmin, xmax = lons[(0,0)], lons[(0,-1)]
                 ymin, ymax = lats[(0,0)], lats[(-1,0)]
             else:
-                xmin, xmax = min(xlim), max(xlim)
-                ymin, ymax = min(ylim), max(ylim)
+                xmin, xmax = np.min(xlim), np.max(xlim)
+                ymin, ymax = np.min(ylim), np.max(ylim)
             
             xshift = 0.5*(self.data[self.x_name].shape[0]-1)
             xmin = np.where(lons[0,:] >= xmin)[0][0]-xshift
@@ -1227,10 +1227,10 @@ class RadarData(RadarConfig.RadarConfig):
         else:
 
             if not xlim: xmin, xmax = self.data[self.x_name].values.min(), self.data[self.x_name].values.max()
-            else: xmin, xmax = min(xlim), max(xlim)
+            else: xmin, xmax = np.min(xlim), np.max(xlim)
             
             if not ylim: ymin, ymax = self.data[self.x_name].values.min(), self.data[self.x_name].values.max()
-            else: ymin, ymax = min(ylim), max(ylim)
+            else: ymin, ymax = np.min(ylim), np.max(ylim)
 
             if 'y' in self.data[self.x_name].dims: xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax),y=slice(ymin,ymax))
             else: xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax))
@@ -1313,24 +1313,24 @@ class RadarData(RadarConfig.RadarConfig):
             
             if latlon:
             
-                minx = np.round(min(minxs)-0.1,1)
-                maxx = np.round(self.lon_0+(self.lon_0-min(minxs))+0.1,1)
-                miny = np.round(min(minys)-0.1,1)
-                maxy = np.round(max(maxys)+0.1,1)
+                minx = np.round(np.min(minxs)-0.1,1)
+                maxx = np.round(self.lon_0+(self.lon_0-np.min(minxs))+0.1,1)
+                miny = np.round(np.min(minys)-0.1,1)
+                maxy = np.round(np.max(maxys)+0.1,1)
                 
             else:
                 
-                minx = np.round(min(minxs),1)
-                maxx = np.round(abs(min(minxs)),1)
-                miny = np.round(min(minys),1)
-                maxy = np.round(max(maxys),1)
+                minx = np.round(np.min(minxs),1)
+                maxx = np.round(np.abs(min(minxs)),1)
+                miny = np.round(np.min(minys),1)
+                maxy = np.round(np.max(maxys),1)
  
         else:
 
-            minx = min(xlim)
-            maxx = max(xlim)
-            miny = min(ylim)
-            maxy = max(ylim)
+            minx = np.min(xlim)
+            maxx = np.max(xlim)
+            miny = np.min(ylim)
+            maxy = np.max(ylim)
            
         self.co_gridlines(fig,ax,latlonyn=latlon,minx=minx,maxx=maxx,miny=miny,maxy=maxy,xlab=xlab,ylab=ylab)
         
@@ -1770,7 +1770,7 @@ class RadarData(RadarConfig.RadarConfig):
                 udat[msk2] = np.nan
 #                ydat= np.ma.masked_where(msk,ydat)
                 #print type(vdat)
-            #print max(vdat)
+            #print np.max(vdat)
             #print 'vect shp',np.shape(udat),np.shape(vdat),np.shape(xdat),min(ydat),max(ydat)
 #            print type(xdat),type(ydat),type(udat)
 #            print('yskip','xskip',yskip,xskip)
@@ -1894,7 +1894,7 @@ class RadarData(RadarConfig.RadarConfig):
 #                v2 = self.get_ind(vl+multiple,self.data[self.z_name].data])
 #                print v,v2
                 dum = self.data[var].sel(z=slice(vl,vl+multiple)).where(np.isfinite)
-            #print max(dum)
+            #print np.max(dum)
 #            dum2 = np.ma.masked_less(dum,-900.0)
 #             dum2 = np.where(np.isfinite(dum))
 #             print(type(dum[dum2]))
@@ -1917,7 +1917,7 @@ class RadarData(RadarConfig.RadarConfig):
             #print(np.shape(lev_hist))
             
             lev_hist = 100.0*lev_hist/np.sum(lev_hist)
-            if max(lev_hist) > 0:
+            if np.max(lev_hist) > 0:
                 #print(looped[ivl])
                 #print('Hello')
                 #print(max(lev_hist))
@@ -2043,7 +2043,7 @@ class RadarData(RadarConfig.RadarConfig):
         else: 
             ax.tick_params(axis='y',labelsize=0,left=False)
         
-        ax.set_xlim(min(bins),max(bins))
+        ax.set_xlim(np.min(bins),np.max(bins))
         ax.set_ylim(0,zmax)
         ax.grid(color='grey', linestyle='-', linewidth=1)
 
@@ -2312,7 +2312,7 @@ class RadarData(RadarConfig.RadarConfig):
         if cscfad == 'convective' or cscfad == 'stratiform':
             self.data[self.hid_name].values = holddat
 
-        #print np.shape(vol), max(vol)
+        #print np.shape(vol), np.max(vol)
         #print hts
 #         print self.data[self.z_name].data[0]
 #         print self.data[self.z_name].data[0][::looped]
@@ -2905,7 +2905,7 @@ class RadarData(RadarConfig.RadarConfig):
             vmax=np.nanmax(dat)
             cmap = plt.cm.gist_ncar
         
-        ax.set_extent([min(self.lons), max(lons), min(lats), max(lats)])
+        ax.set_extent([np.min(self.lons), np.max(lons), np.min(lats), np.max(lats)])
         lon_formatter = LongitudeFormatter(number_format='.1f')
         lat_formatter = LatitudeFormatter(number_format='.1f')
         ax.xaxis.set_major_formatter(lon_formatter)
