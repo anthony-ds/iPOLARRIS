@@ -214,9 +214,7 @@ def polarris_driver(configfile):
                     numck = False
                 if key.replace(" ", "") == 'exper': # or key.replace(" ", "") == 'ptype':
                     vval = vval.strip("''")
-                if key.replace(" ", "") == 'image_dir':
-                    numck = True
-                if key.replace(" ", "") == 'rfiles':
+                if key.replace(" ", "") == 'image_dir' or key.replace(" ", "") == 'rfiles':
                     numck = True
 
                 if numck is True or vval == 'None' or vval == 'True' or vval == 'False':
@@ -227,6 +225,9 @@ def polarris_driver(configfile):
                             config[(key.replace(" ", ""))] = vval
                 else:
                     config[(key.replace(" ", ""))] = vval
+
+                if key.replace(" ", "") == 'mix_vars' or key.replace(" ", "") == 'cfad_vars' or key.replace(" ", "") == 'rhi_vars' or key.replace(" ", "") == 'cappi_vars' or key.replace(" ", "") == 'cfad_compare_vars':
+                    config[(key.replace(" ", ""))] = val
 
     print('Read-in complete.\n')
 
@@ -454,13 +455,15 @@ def polarris_driver(configfile):
     if config['mask_model']:
         print('masking model data')
         rdata.mask_model()
+   
+    hid_on,qr_on,rr_on = False if config['hid_on'] is '' else True, False if config['qr_on'] is '' else True, False if config['rr_on'] is '' else True
+    rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir']) # HCA, RR, QR
     
-    rdata.calc_pol_analysis(tm,config)
     if not config['cs_z'] == '':
         rdata.calc_cs_shy(cs_z=config['cs_z'])
         rdata.raintype=rdata.data['CSS'].values
     
-    if config['comb_vicr']:
+    if not config['comb_vicr'] == '' and hid_on:
         whvi = np.where(rdata.hid == 6)
         rdata.hid[whvi] = 3
  

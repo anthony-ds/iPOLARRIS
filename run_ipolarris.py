@@ -319,7 +319,7 @@ else:
     
     #############################################################################
 
-    if (config['cappi_rr'] | config['all1']):
+    if (config['cappi_rr'] | config['all1']) and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating CAPPI figures.')
         print('Plotting CAPPIs for all heights by time for variable '+rdata.rr_name+'...')
@@ -366,7 +366,7 @@ else:
 
     #############################################################################
     
-    if (config['rrstats_txt'] | config['all2']):
+    if (config['rrstats_txt'] | config['all2']) and not config['rr_on'] == '':
         
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing unconditional-mean statistics for variable '+rdata.rr_name+'...')
@@ -415,7 +415,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
 
-    if (config['rrhist_txt'] | config['all2']):
+    if (config['rrhist_txt'] | config['all2']) and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing histogram data for variable '+rdata.rr_name+'...')
@@ -439,7 +439,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
    
-    if (config['rrstats_areas_txt'] | config['all2']):
+    if (config['rrstats_areas_txt'] | config['all2']) and not config['rr_on'] == '':
         ###Areas
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing domain area statistics for '+rdata.rr_name+'...')
@@ -464,7 +464,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
 
-    if (config['rr_timeseries'] | config['all1']):
+    if (config['rr_timeseries'] | config['all1']) and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating timeseries.')
         print('Plotting timeseries for variable '+rdata.rr_name+'...')

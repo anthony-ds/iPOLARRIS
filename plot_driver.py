@@ -898,20 +898,15 @@ def make_single_pplots(rdat,config,y=None):
         if not config['cs_z'] == '': cs_over = True
         else: cs_over = False
 
-        st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
-        en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
-        if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
-        else:
-            if st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
-            else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' - '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
+        allvars = list(filter(None,eval(config['cfad_vars'])))
 
         if not zmax == '':
-            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'],zmax=zmax,cs_over=cs_over)
+            fig, ax = rdat.cfad_multiplot(varlist = allvars,z_resolution=config['z_resolution'],zmax=zmax,cs_over=cs_over)
         else:
-            fig, ax = rdat.cfad_multiplot(varlist = eval(config['cfad_vars']),z_resolution=config['z_resolution'],cs_over=cs_over)
+            fig, ax = rdat.cfad_multiplot(varlist = allvars,z_resolution=config['z_resolution'],cs_over=cs_over)
         
         nvars=0
-        for var in eval(config['cfad_vars']):
+        for var in allvars:
             if var in rdat.data.variables.keys():
                 nvars+=1
         
@@ -924,14 +919,10 @@ def make_single_pplots(rdat,config,y=None):
         
         label_subplots(fig,yoff=yof,xoff=xof,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
 
-        axf = ax.flatten()
-        axf[0].text(0, 1, '{e} {r}'.format(e=rdat.exper,r=rdat.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
-        axf[2].text(1, 1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[2].transAxes) # (a) Top-left
- 
         if config['ptype'].startswith('mp4'):
-            plt.savefig('{d}{p}_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdat.exper,t1=st,t2=en),dpi=400,bbox_inches='tight')
+            plt.savefig('{d}{p}_CFAD_{t1:%Y%m%d_%H%M%S}-{t2:%Y%m%d_%H%M%S}.png'.format(d=outdir,p=rdat.exper,t1=rdat.date[0],t2=rdat.date[-1]),dpi=400,bbox_inches='tight')
         else: 
-            plt.savefig('{d}{p}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdat.exper,t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
+            plt.savefig('{d}{p}_CFAD_{t1:%Y%m%d_%H%M%S}-{t2:%Y%m%d_%H%M%S}.{t}'.format(d=outdir,p=rdat.exper,t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
 
         plt.close()
 
@@ -945,7 +936,7 @@ def make_single_pplots(rdat,config,y=None):
         outdir = outpath+'cfad_individ/'
         os.makedirs(outdir,exist_ok=True)
 
-        allvars = eval(config['cfad_vars'])
+        allvars = list(filter(None,eval(config['cfad_vars'])))
 
         zmax = config['zmax']
         if not config['cs_z'] == '': cs_over = True
@@ -958,7 +949,7 @@ def make_single_pplots(rdat,config,y=None):
             if st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
             else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' - '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
 
-        for i,v in enumerate(eval(config['cfad_vars'])):
+        for i,v in enumerate(allvars):
             
             if v is None:
                 continue 
@@ -1130,7 +1121,7 @@ def make_single_pplots(rdat,config,y=None):
     if (config['cappi_multi'] | config['all3']):
  
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel CAPPIs for various polarimetric vars.')
-        print('Plotting CAPPIs by time for variables '+str(eval(config['cappi_vars']))+'...')
+        print('Plotting CAPPIs by time for variables '+str(list(filter(None,eval(config['cappi_vars']))))+'...')
         
         outdir = outpath+'cappi_multi/'
         os.makedirs(outdir,exist_ok=True)
@@ -1138,6 +1129,8 @@ def make_single_pplots(rdat,config,y=None):
         if not config['z'] == '': zspan = list(eval(str([config['z']])))
         else: zspan = rdat.data[rdat.z_name].values
         
+        allvars = list(filter(None,eval(config['cappi_vars'])))
+
         for z in zspan: 
             
             print('\nz = '+str(z))
@@ -1149,10 +1142,10 @@ def make_single_pplots(rdat,config,y=None):
                 ts = tms[ii]
                 print(ts)
                 
-                fig = rdat.cappi_multiplot(ts=ts,xlim=xlim,ylim=config['ylim'],z=z,res = config['cappi_vectres'],varlist = eval(config['cappi_vars']),latlon=config['latlon'],statpt=True,dattype=config['type']) #eval(config['cappi_contours']))
+                fig = rdat.cappi_multiplot(ts=ts,xlim=xlim,ylim=config['ylim'],z=z,res = config['cappi_vectres'],varlist = allvars,latlon=config['latlon'],statpt=True,dattype=config['type']) #eval(config['cappi_contours']))
                 #fig = rdat.cappi_multiplot(ts=ts,xlim=config['xlim'],ylim=config['ylim'],z=config['z'],res = config['cappi_vectres'],varlist = eval(config['cappi_vars']),vectors = eval(config['cvectors']),contours = None,statpt=True) #eval(config['cappi_contours']))
 
-                nvars = len(eval(config['cappi_vars']))
+                nvars = len(list(allvars))
                 if nvars <=6:
                     yof = 0.01
                 else:
@@ -1193,7 +1186,9 @@ def make_single_pplots(rdat,config,y=None):
         if not config['z'] == '': zspan = list(eval(str([config['z']])))
         else: zspan = rdat.data[rdat.z_name].values
 
-        for i,v in enumerate(eval(config['cappi_vars'])):
+        allvars = list(filter(None,eval(config['cappi_vars'])))
+
+        for i,v in enumerate(allvars):
            
             print(rdat.names_uc[v])
 
@@ -1248,13 +1243,15 @@ def make_single_pplots(rdat,config,y=None):
     if (config['rhi_multi'] | config['all3']):
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various polarimetric vars.')
-        print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time for variables '+str(eval(config['cappi_vars']))+'...')
+        print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time for variables '+str(list(filter(None,eval(config['rhi_vars']))))+'...')
  
         outdir = outpath+'rhi_multi/'
         os.makedirs(outdir,exist_ok=True)
 
         if not config['y'] == '': yspan = list([config['y']])
         else: yspan = rdat.data[rdat.y_name].values[0::50]
+
+        allvars = list(filter(None,eval(config['rhi_vars'])))
 
         for y in yspan:
 
@@ -1265,11 +1262,15 @@ def make_single_pplots(rdat,config,y=None):
                 print(ts)
 
                 if rdat.w_name is not None:
-                    fig = rdat.xsec_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=eval(config['rhi_vars']),latlon=config['latlon'])
+                    fig = rdat.xsec_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 else:
-                    fig = rdat.xsec_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=eval(config['rhi_vars']),latlon=config['latlon'])
+                    fig = rdat.xsec_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 
-                nvars = len(eval(config['rhi_vars']))-1*(rdat.w_name is None)
+                nvars=0
+                for var in allvars:
+                    if var in rdat.data.variables.keys():
+                        nvars+=1
+     
                 if nvars <= 6:
                     yof = 0.01
                 else:
@@ -1307,8 +1308,10 @@ def make_single_pplots(rdat,config,y=None):
 
         if not config['y'] == '': yspan = list(eval(str([config['y']])))
         else: yspan = rdat.data[rdat.y_name].values[0::50]
-     
-        for i,v in enumerate(eval(config['rhi_vars'])):
+    
+        allvars = list(filter(None,eval(config['rhi_vars'])))
+
+        for i,v in enumerate(allvars):
 
             if v is None:
                 continue
@@ -1364,7 +1367,7 @@ def make_single_pplots(rdat,config,y=None):
         for ts in tms:
         
             print ("qr_cappi")
-            fig = rdat.cappi_multiplot(z=config['z'],ts=ts,xlim=config['xlim'],ylim=config['ylim'],varlist=eval(config['mix_vars']))
+            fig = rdat.cappi_multiplot(z=config['z'],ts=ts,xlim=config['xlim'],ylim=config['ylim'],varlist=list(filter(None,eval(config['mix_vars']))))
             plt.savefig('{d}{p}_qcappi_6panel_{s:%Y%m%d%H%M%S}_{r}_{z}km.{t}'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',t=config['ptype'],z=config['z']),dpi=300)
             plt.clf()
     
@@ -1374,7 +1377,7 @@ def make_single_pplots(rdat,config,y=None):
         for ts in tms:
         
             print ("qr_rhi")
-            fig = rdat.xsec_multiplot(ts=ts,y=config['y'],xlim=config['xlim'],varlist=eval(config['mix_vars']))
+            fig = rdat.xsec_multiplot(ts=ts,y=config['y'],xlim=config['xlim'],varlist=list(filter(None,eval(config['mix_vars']))))
             plt.savefig('{d}{p}_qrhi_6panel_{s:%Y%m%d%H%M%S}_{r}_{y}.{t}'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',t=config['ptype'],y=config['y']),dpi=300)
             plt.clf()
     

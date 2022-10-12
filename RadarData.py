@@ -595,24 +595,31 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
    ############ Here is calling CSU radartools for HID, RR, etc... ############################
 #############################################################################################################
-    def calc_pol_analysis(self,tm,config,**kwargs):
+    def calc_pol_analysis(self,tm,hid_on,qr_on,rr_on,rr_dir=None,**kwargs):
         
         import time
         
-        start = time.time()
-        self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores)
-        print('HID runtime = '+str(time.time()-start))
+        if hid_on:
+
+            start = time.time()
+            self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores)
+            print('HID runtime = '+str(time.time()-start))
         
         if self.mphys == 'obs':
+            
+            if qr_on:
 
-            print("running pol rain")
-            start = time.time()
-            self.calc_qr_pol()
-            print('QR runtime = '+str(time.time()-start))
+                print("running pol qr")
+                start = time.time()
+                self.calc_qr_pol()
+                print('QR runtime = '+str(time.time()-start))
 
-            start = time.time()
-            self.calc_rr_pol(tm,config,**kwargs)
-            print('RR runtime = '+str(time.time()-start))
+            if rr_on:
+                
+                print("running pol rr")
+                start = time.time()
+                self.calc_rr_pol(tm,rr_dir,**kwargs)
+                print('RR runtime = '+str(time.time()-start))
 
 
 #############################################################################################################
@@ -744,7 +751,7 @@ class RadarData(RadarConfig.RadarConfig):
                 k_m=0.6589
                 z_c=0.0014297
                 z_m=0.6729
-
+        
         else:
             print('Problem in ice-mass. No criteria (wavelength or project)')
             #print ('Your wavelength has not been run yet! Please return to fundamentals.')
@@ -797,7 +804,7 @@ class RadarData(RadarConfig.RadarConfig):
         print('saved data')
 
 
-    def calc_rr_pol(self,tm,config,band=None):
+    def calc_rr_pol(self,tm,rr_dir,band=None):
 
 #        import pydisdrometer as pyd
 #        import pytmatrix as pyt
@@ -903,7 +910,7 @@ class RadarData(RadarConfig.RadarConfig):
         it = self.data[self.rr_name].shape[0]
         print('\nSaving RR to files...')
         for ii in tqdm(range(it)):
-            filepath = config['rr_dir']+'/RR_hidro_'+config['exper']+'_'+str(tm[ii].strftime('%Y%m%d_%H%M%S'))+'.nc'
+            filepath = rr_dir+'/RR_hidro_'+self.exper+'_'+str(tm[ii].strftime('%Y%m%d_%H%M%S'))+'.nc'
             if not os.path.isfile(filepath): self.data[self.rr_name].sel(d=ii).to_netcdf(path=filepath, mode='w')  
         print('')
         
@@ -1134,27 +1141,29 @@ class RadarData(RadarConfig.RadarConfig):
             figx= 18
             figy = 18
 
-        fig, ax = plt.subplots(nrows,ncols,figsize=(16,8),gridspec_kw={'wspace': 0.45, 'hspace': 0.07, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
-        
+        if 'HID' in good_vars:
+            fig, ax = plt.subplots(nrows,ncols,figsize=(16,8),gridspec_kw={'wspace': 0.45, 'hspace': 0.07, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
+        else:
+            fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.3, 'hspace': 0.07, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
+
         if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
             ax = np.array([ax])
         axf = ax.flatten()
 
+        for i in range(len(good_vars),ncols*nrows):
+            fig.delaxes(axf[i])
+ 
         for i, var in enumerate(good_vars):
-            if var is None:
-                fig.delaxes(axf[i])
-                continue
+            if vectors is not None:
+                vect = vectors[i]
             else:
-                if vectors is not None:
-                    vect = vectors[i]
-                else:
-                    vect = None
-                botpanels = np.arange(nvars-ncols,nvars)
-                xlabbool = True if i in botpanels else False
-                lspanels = [ncols*n for n in range(0,nrows)]
-                ylabbool = True if i in lspanels else False
-                #dummy = self.xsec(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
-                dummy = self.xsec(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
+                vect = None
+            botpanels = np.arange(nvars-ncols,nvars)
+            xlabbool = True if i in botpanels else False
+            lspanels = [ncols*n for n in range(0,nrows)]
+            ylabbool = True if i in lspanels else False
+            #dummy = self.xsec(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
+            dummy = self.xsec(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
 
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
 
@@ -1321,7 +1330,7 @@ class RadarData(RadarConfig.RadarConfig):
             else:
                 
                 minx = np.round(np.min(minxs),1)
-                maxx = np.round(np.abs(min(minxs)),1)
+                maxx = np.round(np.abs(np.min(minxs)),1)
                 miny = np.round(np.min(minys),1)
                 maxy = np.round(np.max(maxys),1)
  
@@ -1412,25 +1421,24 @@ class RadarData(RadarConfig.RadarConfig):
         axf = ax.flatten()
         
         for i, var in enumerate((good_vars)):
-            if var is None:
-                fig.delaxes(axf[i])
-                continue
+            if contours is not None:
+                vcont = contours[i]
             else:
-                if contours is not None:
-                    vcont = contours[i]
-                else:
-                    vcont = None
-                if vectors is not None:
-                    vect = vectors[i]
-                else:
-                    vect = None
-                botpanels = np.arange(nvars-ncols,nvars)
-                xlabbool = True if i in botpanels else False
-                lspanels = [ncols*n for n in range(0,nrows)]
-                ylabbool = True if i in lspanels else False
-                #dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, vectors=vect,res=res,contour=vcont,thresh_dz =thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=False)
-                dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
-
+                vcont = None
+            if vectors is not None:
+                vect = vectors[i]
+            else:
+                vect = None
+            botpanels = np.arange(nvars-ncols,nvars)
+            xlabbool = True if i in botpanels else False
+            lspanels = [ncols*n for n in range(0,nrows)]
+            ylabbool = True if i in lspanels else False
+            #dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, vectors=vect,res=res,contour=vcont,thresh_dz =thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=False)
+            dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
+        
+        for i in range(len(good_vars),ncols*nrows):
+            fig.delaxes(axf[i])
+         
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
         
         axf[ncols-1].text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
@@ -1941,6 +1949,13 @@ class RadarData(RadarConfig.RadarConfig):
 
     def cfad_multiplot(self, varlist=None, z_resolution=1.0, cs_over=False, zmax=None, **kwargs):
 
+        st = self.date[0].strftime('%Y%m%d_%H%M%S')
+        en = self.date[-1].strftime('%Y%m%d_%H%M%S')
+        if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
+        else:
+            if st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
+            else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' - '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
+
         if varlist is not None:
             good_vars = varlist
         else:
@@ -1960,26 +1975,37 @@ class RadarData(RadarConfig.RadarConfig):
             ncols = int(np.ceil(nvars/2))
 
         fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.1, 'hspace': 0.2, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
-        
         if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
             ax = np.array([ax], **kwargs)
         axf = ax.flatten()
+ 
+        for i in range(len(good_vars),ncols*nrows):
+            fig.delaxes(axf[i])
         
         for i, var in enumerate((good_vars)):
-            if var is None:
-                fig.delaxes(axf[i])
-                continue
-            else:
-                print(var)
-                lspanels = [ncols*n for n in range(0,nrows)]
-                ylabbool = True if i in lspanels else False
+            lspanels = [ncols*n for n in range(0,nrows)]
+            ylabbool = True if i in lspanels else False
+            if 'HID' in good_vars:
                 cbpanels = [ncols*n+2 for n in range(0,nrows)]
                 cbbool = True if i in cbpanels else False
-                if not var.startswith('HID'):
-                    self.cfad_plot(var,ax=axf[i],ylab=ylabbool,cbar=cbbool,bins=self.cfbins[var],levels=1,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
-                else:
-                    self.plot_hid_cdf(ax=axf[i],ylab=ylabbool,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
-       
+            else:
+                cbbool = 0
+            if not var.startswith('HID'):
+                cfad_ma, hts, pc, figout, axout = self.cfad_plot(var,ax=axf[i],ylab=ylabbool,cbar=cbbool,bins=self.cfbins[var],levels=1,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
+            else:
+                self.plot_hid_cdf(ax=axf[i],ylab=ylabbool,zmax=zmax,z_resolution=z_resolution,cs_over=cs_over)
+ 
+        if 'HID' not in good_vars:
+            cbar_ax_dims = [1.02,0.0,0.03,1.0]
+            cbar_ax = fig.add_axes(cbar_ax_dims)
+            cbt = plt.colorbar(pc,cax=cbar_ax)
+            cbt.ax.tick_params(labelsize=16)
+            cbt.set_label('Frequency (%)', fontsize=16, rotation=270, labelpad=20)
+            cbt.set_ticks(self.cfad_levs)
+              
+        axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
+        axf[ncols-1].text(1, 1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
+ 
         return fig, ax
 
 #############################################################################################################
