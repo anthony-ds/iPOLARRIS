@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import RadarData
-import GeneralFunctions as GF
+#import GeneralFunctions as GF
 from matplotlib import colors
 #plt.style.use('./presentation.mplstyle')
 #plt.style.use('default')

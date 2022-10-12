@@ -20,7 +20,7 @@ import xarray as xr
 import time
 from copy import deepcopy
 import RadarData
-import GeneralFunctions as GF
+#import GeneralFunctions as GF
 import RadarConfig
 import plot_driver
 from skewPy import SkewT

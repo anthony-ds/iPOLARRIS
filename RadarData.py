@@ -2076,7 +2076,7 @@ class RadarData(RadarConfig.RadarConfig):
         return cfad_ma, hts, pc, fig, ax
 
 #############################################################################################################
-'''
+    
     def hist2d(self, varx=None, vary=None, binsx=None, binsy=None, above=None, below=None, pick=None,xthr = -900.0,ythr=-900.0):
         # This will just look at the whole volume
 #        if above is None:
@@ -2102,7 +2102,6 @@ class RadarData(RadarConfig.RadarConfig):
 #                 binsx=binsx, binsy=binsy)
 
         return hist, edges
-'''
 
 #############################################################################################################
 #############################################################################################################

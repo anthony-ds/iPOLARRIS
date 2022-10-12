@@ -43,7 +43,7 @@ warnings.filterwarnings('ignore')
 import xarray as xr
 
 # Import iPOLARRIS functions
-import GeneralFunctions as GF
+#import GeneralFunctions as GF
 from polarris_driver import polarris_driver
 import plot_driver
 import RadarData
