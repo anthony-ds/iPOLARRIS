@@ -108,26 +108,28 @@ loncen=-124.106666564941
 #latcen=49.0164413452148
 #loncen=-122.487358093262
 
-echo
-echo Selecting temperature files for analysis in range $stt to $edt...
-echo
-sleep 3
-
 tfile=tmp_${stt}_${edt}.txt
 
-for filepath in $(ls $tempdir/* | sort); do
-    file=$(basename $filepath)
-    filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
-    if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -le "$(echo $edt | tr -d '_')00" ]; then 
-        echo $filepath >> $configdir/$tfile
-        echo $(basename $filepath)
-    fi
-    if [ "$filedt" -gt "$(echo $edt | tr -d '_')00" ]; then
-        break
-    fi
-done
+if [[ "$(ls $tempdir/* | sort | head -n 1 | xargs basename)" == "wrfout"* ]]; then
+    for filepath in $(ls $tempdir/* | sort); do
+        
+        echo
+        echo Selecting temperature files for analysis in range $stt to $edt...
+        echo
+        sleep 3
+        
+        file=$(basename $filepath)
+        filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
+        if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -le "$(echo $edt | tr -d '_')00" ]; then 
+            echo $filepath >> $configdir/$tfile
+            echo $(basename $filepath)
+        fi
+        if [ "$filedt" -gt "$(echo $edt | tr -d '_')00" ]; then
+            break
+        fi
 
-if [[ "$(head -n 1 $configdir/$tfile | xargs basename)" == "wrfout"* ]]; then
+    done
+
     mp=$(head -n 1 $configdir/$tfile | xargs basename | cut -d '_' -f2)
     for ((ii=0;ii<${#mpopts[@]};ii++)); do
        [[ "${mpopts[ii]}" = "$mp" ]] && break
@@ -137,12 +139,49 @@ if [[ "$(head -n 1 $configdir/$tfile | xargs basename)" == "wrfout"* ]]; then
     tempfile=temp_${tempsrc}_${stt}_${edt}.txt
     snd_on='False'
     wrft_on='True'
+
 else
-    tempsrc='uwyo'
+
+    echo
+    echo Selecting sounding files at closest times to range $stt to $edt...
+    echo
+    sleep 3
+
+    declare -a beffiles=()
+    declare -a infiles=()
+    declare -a aftfiles=()
+
+    for filepath in $(ls $tempdir/* | sort); do
+
+        file=$(basename $filepath)
+        filedt=$(echo $file | cut -d '_' -f2 | tr -d '-')$(echo $file | cut -d '_' -f3 | cut -d '.' -f1 | tr -d ':')
+       
+        if [ "$filedt" -lt "$(echo $stt | tr -d '_')00" ]; then
+            beffiles+=($filepath)
+        elif [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -le "$(echo $edt | tr -d '_')00" ]; then
+            infiles+=($filepath)
+        elif [ "$filedt" -gt "$(echo $edt | tr -d '_')00" ]; then 
+            aftfiles+=($filepath)
+        fi
+        
+    done
+
+    echo $(basename ${beffiles[${#beffiles[@]}-1]})
+    echo ${beffiles[${#beffiles[@]}-1]} > $configdir/$tfile
+    for filep in ${infiles[@]}; do
+        echo $(basename $filep)
+        echo $filep >> $configdir/$tfile
+    done
+    echo $(basename ${aftfiles[0]})
+    echo ${aftfiles[0]} >> $configdir/$tfile
+    
+    tempsrc='uwyo-'$(basename $tempdir | tr '[:upper:]' '[:lower:]')
     tempfile=temp_${tempsrc}_${stt}_${edt}.txt
     snd_on='True'
     wrft_on='False'
+
 fi
+
 mv $configdir/$tfile $configdir/$tempfile
 
 if [ -z $simdir ]; then
@@ -217,7 +256,11 @@ if [ -z $simdir ]; then
     sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo $stt | tr '_' '-')' == # Start time of analysis of interest/g" $configdir/$configfile
     sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo $edt | tr '_' '-')' == # End time of analysis of interest/g" $configdir/$configfile
     sed -i '' "s%.*rfiles ==.*%rfiles == '$configdir/$inputfile' == # Path to list of radar files to read in%g" $configdir/$configfile
-    sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
+    if [[ "$wrft_on" == "True" ]]; then
+        sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
+    elif [[ "$snd_on" == "True" ]]; then
+        sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
+    fi
     if [[ "$data" == "obs" ]]; then
         sed -i '' "s/.*exper ==.*/exper == $station == # Radar location/g" $configdir/$configfile
     else
