@@ -595,14 +595,14 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
    ############ Here is calling CSU radartools for HID, RR, etc... ############################
 #############################################################################################################
-    def calc_pol_analysis(self,tm,hid_on,qr_on,rr_on,rr_dir=None,**kwargs):
+    def calc_pol_analysis(self,tm,hid_on,qr_on,rr_on,rr_dir=None,classify='summer',**kwargs):
         
         import time
         
         if hid_on:
 
             start = time.time()
-            self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores)
+            self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores,classify='summer')
             print('HID runtime = '+str(time.time()-start))
         
         if self.mphys == 'obs':
@@ -628,7 +628,7 @@ class RadarData(RadarConfig.RadarConfig):
 
 
    # Just a wrapper on the CSU radartools HID function
-    def set_hid(self, band=None, use_temp=False, name='HID',zthresh = -9999.0,return_scores=False):
+    def set_hid(self, band=None, use_temp=False, name='HID',zthresh = -9999.0,return_scores=False,classify='summer'):
         
         #        print zthresh
         #        print self.dz_name
@@ -658,7 +658,12 @@ class RadarData(RadarConfig.RadarConfig):
             else:
                tdum = None
             #print('You have entered hid band:',self.hid_band, 'ln 624 RadarData')
-            hiddum = csu_fhc.csu_fhc_summer(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
+            if classify.startswith('summer'):
+                hiddum = csu_fhc.csu_fhc_summer(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
+
+            elif classify.startswith('winter'):
+                hiddum = csu_fhc.csu_fhc_winter(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
+                
 #            scores.append(scoresdum)
             #hiddum = np.argmax(scoresdum,axis=0)+1
 #            print(np.shape(tdum),'tdum')

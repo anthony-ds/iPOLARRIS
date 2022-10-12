@@ -457,7 +457,7 @@ def polarris_driver(configfile):
         rdata.mask_model()
    
     hid_on,qr_on,rr_on = False if config['hid_on'] is '' else True, False if config['qr_on'] is '' else True, False if config['rr_on'] is '' else True
-    rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir']) # HCA, RR, QR
+    rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir'],classify=config['hid_cols']) # HCA, RR, QR
     
     if not config['cs_z'] == '':
         rdata.calc_cs_shy(cs_z=config['cs_z'])
