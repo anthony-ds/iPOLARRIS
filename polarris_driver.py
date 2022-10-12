@@ -439,7 +439,7 @@ def polarris_driver(configfile):
         else:
             rvar[config['t_name']].values = deepcopy(rvar[config['t_name']])-273.15
 
-    rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],mphys=config['mphys'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'])
+    rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],mphys=config['mphys'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
 
     if config['snd_on']:
         print('In your config file, snd_on is set to True.')

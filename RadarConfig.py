@@ -13,7 +13,7 @@ class RadarConfig(object):
     def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',
             temp='T', x='x', y='y', z='z', u='U', v='V',rr='RR', w='Wvar',vr='VR',mphys='None',exper = 'Case',
             band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,
-            color_blind = False):
+            color_blind = False, hid_cats = 'summer'):
         # ******** first the polarimetric stuff *************
         self.dz_name = dz
         self.zdr_name = zdr
@@ -55,13 +55,18 @@ class RadarConfig(object):
         #print tm
         self.date = tm
         self.radar_name = radar_name
-
-        self.species = np.array(['DZ','RN','CR','AG','WS','VI','LDG','HDG','HA','BD'])
-        self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggre-\ngates','Wet\nSnow','Vertical\nIce','Low-\nDensity\nGraupel','High-\nDensity\nGraupel','Hail','Big\nDrops'])
+        
+        if hid_cats.startswith('winter'):
+            self.species = np.array(['IC','PL','DR','AG','WS','DZ','RN'])
+            self.species_long = np.array(['Ice\nCrystals','Plates','Dendrites','Snow\nAggregates','Wet\nSnow','Drizzle','Rain'])
+            self.hid_colors = ['Orange','Purple','Fuchsia','Pink','Cyan','LightBlue', 'Blue']
+        else:
+            self.species = np.array(['DZ','RN','CR','AG','WS','VI','LDG','HDG','HA','BD'])
+            self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggre-\ngates','Wet\nSnow','Vertical\nIce','Low-\nDensity\nGraupel','High-\nDensity\nGraupel','Hail','Big\nDrops'])
         #self.hid_colors = ['White','LightBlue','MediumBlue','Darkorange','LightPink','Cyan','DarkGray',\
         #    'Lime','Yellow','Red','Fuchsia']
-        self.hid_colors = ['LightBlue','MediumBlue','Darkorange','Purple','Cyan','DarkGray',\
-            'Lime','Yellow','Red','Fuchsia'] 
+            self.hid_colors = ['LightBlue','MediumBlue','Darkorange','Pink','Cyan','DarkGray','Lime','Yellow','Red','Fuchsia'] 
+ 
         self.pol_vars = np.array([self.dz_name, self.zdr_name, self.kdp_name, self.ldr_name, self.rho_name, self.hid_name])
 
         self.cs_colors = ['#FFFFFF', 'DodgerBlue', 'Red', 'Khaki']
