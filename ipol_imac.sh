@@ -8,13 +8,14 @@ realpath() {
 
 ipoldir="$(realpath )"
 
-ptype=$1
-starg=$2
-enarg=$3
-raddir="$(realpath $4)"
-tempdir="$(realpath $5)"
-simdir=$6
-doppdir=$7
+starg=$1
+enarg=$2
+raddir="$(realpath $3)"
+tempdir="$(realpath $4)"
+simdir=$5
+doppdir=$6
+
+ptype=mp4
 
 mkdir -p $raddir $tempdir
 if [ ! -z $simdir ]; then
