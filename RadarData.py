@@ -808,7 +808,7 @@ class RadarData(RadarConfig.RadarConfig):
 
 #        import pydisdrometer as pyd
 #        import pytmatrix as pyt
-        import csu_blended_rain_julie
+        import csu_blended_rain
         import time
 
         ### This is where I do mixing ratio calculations ### 
@@ -894,9 +894,9 @@ class RadarData(RadarConfig.RadarConfig):
             return
         
         start = time.time()
-        rr_arr,rm = csu_blended_rain_julie.csu_hidro_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band,fhc=self.hid)
+        rr_arr,rm = csu_blended_rain.csu_hidro_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band,fhc=self.hid)
         print(time.time()-start)
-        #rr_arr,rm = csu_blended_rain_julie.calc_blended_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,None,None,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band)
+        #rr_arr,rm = csu_blended_rain.calc_blended_rain(self.data[self.dz_name].values,self.data[self.zdr_name].values,self.data[self.kdp_name].values,z_c,z_m,k_c,k_m,None,None,azdrk_coeff,bzdrk_coeff, czdrk_coeff,azzdr_coeff,bzzdr_coeff,czzdr_coeff,band=band)
 #         mask=np.where(np.isnan(self.data[self.dz_name].values))
 #         rr[mask]=np.nan
 #         rm[mask]=-1
