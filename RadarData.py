@@ -26,7 +26,7 @@ import sys
 #from pyhid import beta_functions, cdf_fhc, radar_calculations
 from matplotlib import colors
 import matplotlib.ticker as plticker
-from general_tools import make_cmap
+#from general_tools import make_cmap
 import scipy.ndimage as ND
 import matplotlib as mpl
 from copy import deepcopy
@@ -44,7 +44,7 @@ from tqdm import tqdm
 #import lightning_tools as LT
 #from CSU_RadarTools.csu_radartools import csu_fhc
 import csu_fhc
-import general_tools as gentools
+#import general_tools as gentools
 import RadarConfig
 # Up here are just some general functions
 
@@ -2076,7 +2076,7 @@ class RadarData(RadarConfig.RadarConfig):
         return cfad_ma, hts, pc, fig, ax
 
 #############################################################################################################
-
+'''
     def hist2d(self, varx=None, vary=None, binsx=None, binsy=None, above=None, below=None, pick=None,xthr = -900.0,ythr=-900.0):
         # This will just look at the whole volume
 #        if above is None:
@@ -2102,7 +2102,7 @@ class RadarData(RadarConfig.RadarConfig):
 #                 binsx=binsx, binsy=binsy)
 
         return hist, edges
-
+'''
 
 #############################################################################################################
 #############################################################################################################
