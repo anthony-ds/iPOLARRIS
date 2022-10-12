@@ -111,13 +111,15 @@ loncen=-124.106666564941
 tfile=tmp_${stt}_${edt}.txt
 
 if [[ "$(ls $tempdir/* | sort | head -n 1 | xargs basename)" == "wrfout"* ]]; then
+
+    echo
+    echo Selecting temperature files for analysis in range $stt to $edt...
+    echo
+    sleep 3 
+
     for filepath in $(ls $tempdir/* | sort); do
         
-        echo
-        echo Selecting temperature files for analysis in range $stt to $edt...
-        echo
-        sleep 3
-        
+       
         file=$(basename $filepath)
         filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
         if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -le "$(echo $edt | tr -d '_')00" ]; then 
