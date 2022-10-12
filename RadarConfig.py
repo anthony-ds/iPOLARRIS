@@ -57,9 +57,12 @@ class RadarConfig(object):
         self.radar_name = radar_name
         
         if hid_cats.startswith('winter'):
-            self.species = np.array(['IC','PL','DR','AG','WS','DZ','RN'])
-            self.species_long = np.array(['Ice\nCrystals','Plates','Dendrites','Snow\nAggregates','Wet\nSnow','Drizzle','Rain'])
-            self.hid_colors = ['Orange','Purple','Fuchsia','Pink','Cyan','LightBlue', 'Blue']
+            self.species = np.array(['DZ','RN','IC','AG','WS','PL','DR'])
+            #self.species = np.array(['IC','PL','DR','AG','WS','DZ','RN'])
+            self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggregates','Wet\nSnow','Plates','Dendrites'])
+            #self.species_long = np.array(['Ice\nCrystals','Plates','Dendrites','Snow\nAggregates','Wet\nSnow','Drizzle','Rain'])
+            self.hid_colors = ['LightBlue','Blue','DarkOrange','Pink','Cyan','Purple','Fuchsia']
+            #self.hid_colors = ['Orange','Purple','Fuchsia','Pink','Cyan','LightBlue', 'Blue']
         else:
             self.species = np.array(['DZ','RN','CR','AG','WS','VI','LDG','HDG','HA','BD'])
             self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggre-\ngates','Wet\nSnow','Vertical\nIce','Low-\nDensity\nGraupel','High-\nDensity\nGraupel','Hail','Big\nDrops'])
