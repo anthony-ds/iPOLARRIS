@@ -101,8 +101,8 @@ done
 
 mv $configdir/$tfile $configdir/$inputfile
 
-latcen=$(cat $raddir/../../radar_specs/${station}_specs.txt | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
-loncen=$(cat $raddir/../../radar_specs/${station}_specs.txt | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+latcen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+loncen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 #latcen=47.116943359375
 #loncen=-124.106666564941
 #latcen=49.0164413452148
