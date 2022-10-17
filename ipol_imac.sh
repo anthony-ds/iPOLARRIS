@@ -12,18 +12,12 @@ starg=$1
 enarg=$2
 raddir="$(realpath $3)"
 tempdir="$(realpath $4)"
-simdir=$5
-doppdir=$6
+doppdir=$5
+declare -a simdirs=(${@:6})
 
 ptype=mp4
 
 mkdir -p $raddir $tempdir
-if [ ! -z $simdir ]; then
-    mkdir -p $simdir
-fi
-if [ ! -z $doppdir ]; then
-    mkdir -p $doppdir
-fi
 
 declare -a mpopts=( "mp06" "mp08" "mp10" "mp16" "mp51" )
 declare -a mpnames=( "wsm6" "thom" "morr" "wdm6" "p3" )
@@ -64,7 +58,7 @@ if [[ "$(ls $raddir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
     configfile=config_${mpnames[ii]}_${stt}_${edt}.txt
     echo $data
 else
-    if [ -z $simdir ]; then
+    if [ -z $simdirs ]; then
         data='obs'
         inputfile=input_${data}_${stt}_${edt}.txt
         configfile=config_${data}_${stt}_${edt}.txt
@@ -118,8 +112,7 @@ if [[ "$(ls $tempdir/* | sort | head -n 1 | xargs basename)" == "wrfout"* ]]; th
     sleep 3 
 
     for filepath in $(ls $tempdir/* | sort); do
-        
-       
+         
         file=$(basename $filepath)
         filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
         if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -le "$(echo $edt | tr -d '_')00" ]; then 
@@ -186,7 +179,7 @@ fi
 
 mv $configdir/$tfile $configdir/$tempfile
 
-if [ -z $simdir ]; then
+if [ -z $simdirs ]; then
     if [[ "$data" == "obs" ]]; then
         fold="obs"
     else
@@ -194,37 +187,50 @@ if [ -z $simdir ]; then
     fi
 
 else
-    
-    echo
-    echo Selecting wrfout files for analysis in range $stt to $edt...
-    echo
-    sleep 3
 
-    fold='obsvwrf'
-    mp2=$(ls $simdir/* | head -n 1 | xargs basename | cut -d '_' -f2)
-    for ((ii=0;ii<${#mpopts[@]};ii++)); do
-       [[ "${mpopts[ii]}" = "$mp2" ]] && break
+    declare -a inputfiles2=()
+    declare -a configfiles2=()
+    declare -a allmps=()
+
+    for simdir in ${simdirs[@]}; do
+
+        echo
+        echo Selecting wrfout files for analysis in range $stt to $edt...
+
+        fold='obsvwrf'
+        mp2=$(ls $simdir/* | head -n 1 | xargs basename | cut -d '_' -f2)
+        for ((ii=0;ii<${#mpopts[@]};ii++)); do
+           [[ "${mpopts[ii]}" = "$mp2" ]] && break
+        done
+        mpname2=$(echo ${mpnames[ii]})
+        echo MP=$(echo $mpname2 | tr '[:lower:]' '[:upper:]')
+        echo
+        sleep 3
+
+        inputfile2=input_${mpname2}_${stt}_${edt}.txt
+        configfile2=config_${mpname2}_${stt}_${edt}.txt
+
+        inputfiles2+=($configdir/$inputfile2)
+        configfiles2+=($configdir/$configfile2)
+        allmps+=($mpname2)
+
+        tfile=input_${stt}_${edt}.txt
+
+        for filepath in $(ls $simdir/* | sort); do
+            file=$(basename $filepath)
+            filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
+            if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -lt "$(echo $edt | tr -d '_')00" ]; then 
+                echo $filepath >> $configdir/$tfile
+                echo $(basename $filepath)
+            fi
+            if [ "$filedt" -ge "$(echo $edt | tr -d '_')00" ]; then
+                break
+            fi
+        done
+
+        mv $configdir/$tfile $configdir/$inputfile2
+
     done
-    mpname2=$(echo ${mpnames[ii]})
-
-    inputfile2=input_${mpname2}_${stt}_${edt}.txt
-    configfile2=config_${mpname2}_${stt}_${edt}.txt
-    
-    tfile=input_${stt}_${edt}.txt
-
-    for filepath in $(ls $simdir/* | sort); do
-        file=$(basename $filepath)
-        filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
-        if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -lt "$(echo $edt | tr -d '_')00" ]; then 
-            echo $filepath >> $configdir/$tfile
-            echo $(basename $filepath)
-        fi
-        if [ "$filedt" -ge "$(echo $edt | tr -d '_')00" ]; then
-            break
-        fi
-    done
-
-    mv $configdir/$tfile $configdir/$inputfile2
 
 fi
 
@@ -288,6 +294,7 @@ else
     echo
     sleep 3
 
+    echo OBS
     template=$ipoldir/${agency}_obs_config.txt
     cp $template $configdir/$configfile
 
@@ -308,27 +315,34 @@ else
     sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" $configdir/$configfile
 
     template2=$ipoldir/${agency}_wrf_config.txt
-    cp $template2 $configdir/$configfile2
+    
+    for ((ii=0;ii<${#allmps[@]};ii++)); do
+        
+        echo MP=$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]')
+        cp $template2 ${configfiles2[ii]}
 
-    sed -i '' "s/^type ==.*/type == wrf == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" $configdir/$configfile2
-    sed -i '' "s/.*mphys ==.*/mphys == $mpname2 == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" $configdir/$configfile2
-    sed -i '' "s/.*ptype ==.*/ptype == '$ptype' == # Output figure file extenstion (i.e. png, jpg, mp4, ...)/g" $configdir/$configfile2
-    sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo $stt | tr '_' '-')' == # Start time of analysis of interest/g" $configdir/$configfile2
-    sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo $edt | tr '_' '-')' == # End time of analysis of interest/g" $configdir/$configfile2
-    sed -i '' "s%.*rfiles ==.*%rfiles == '$configdir/$inputfile2' == # Path to list of radar files to read in%g" $configdir/$configfile2
-    sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile2
-    sed -i '' "s/.*exper ==.*/exper == $station-$(echo $mpname2 | tr '[:lower:]' '[:upper:]') == # Radar location/g" $configdir/$configfile2
-    sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" $configdir/$configfile2
-    sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" $configdir/$configfile2
-    sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" $configdir/$configfile2
-    sed -i '' "s%.*rr_dir ==.*%rr_dir == '$outrrdir/' == # Output rain rate netcdf directory%g" $configdir/$configfile2
-    sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" $configdir/$configfile2
-    sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" $configdir/$configfile2
-    sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" $configdir/$configfile2
+        sed -i '' "s/^type ==.*/type == wrf == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" ${configfiles2[ii]}
+        sed -i '' "s/.*mphys ==.*/mphys == $(echo ${allmps[ii]}) == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" ${configfiles2[ii]}
+        sed -i '' "s/.*ptype ==.*/ptype == '$ptype' == # Output figure file extenstion (i.e. png, jpg, mp4, ...)/g" ${configfiles2[ii]}
+        sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo $stt | tr '_' '-')' == # Start time of analysis of interest/g" ${configfiles2[ii]}
+        sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo $edt | tr '_' '-')' == # End time of analysis of interest/g" ${configfiles2[ii]}
+        sed -i '' "s%.*rfiles ==.*%rfiles == '${inputfiles2[ii]}' == # Path to list of radar files to read in%g" ${configfiles2[ii]}
+        sed -i '' "s%.*wfiles ==.*%wfiles == '${inputfiles2[ii]}' == # Path to list of WRF temperature files to read in%g" ${configfiles2[ii]}
+        sed -i '' "s/.*exper ==.*/exper == $station-$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]') == # Radar location/g" ${configfiles2[ii]}
+        sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" ${configfiles2[ii]}
+        sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" ${configfiles2[ii]}
+        sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" ${configfiles2[ii]}
+        sed -i '' "s%.*rr_dir ==.*%rr_dir == '$outrrdir/' == # Output rain rate netcdf directory%g" ${configfiles2[ii]}
+        sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" ${configfiles2[ii]}
+        sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" ${configfiles2[ii]}
+        sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" ${configfiles2[ii]}
 
+    done
+
+    echo
     echo Running iPOLARRIS...
     sleep 3
 
-    python run_ipolarris.py $configdir/$configfile $configdir/$configfile2
+    python run_ipolarris.py $configdir/$configfile $(printf "%s " ${configfiles2[@]})
 
 fi

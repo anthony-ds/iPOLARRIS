@@ -12,9 +12,9 @@ print("####################################\n")
 
 print("WARNING: Before proceeding, ensure that you have: \n\n (a) installed the Anaconda package manager. Latest versions and instructions can be found here: \n https://conda.io/projects/conda/en/latest/user-guide/install/index.html \n\n (b) installed the Conda environment required to run iPOLARRIS with the command `conda env create -f env.yml` \n\n (c) activated the new environment with the command `conda activate pol` \n\n (d) Put /usr/bin ahead of your 'default' executable directories (i.e. before /opt/local/bin) in $PATH, if it is not already. It does not need to be ahead of your custom executable directories (i.e. ~/../anaconda3/bin) \n\n (e) Run: `f2py -c calc_kdp_ray_fir.f -m calc_kdp_ray_fir`. This will allow you to use the Fortran compiler in /usr/bin to convert your .f file into a readable .so file for your MAC or Linux OS. \n")
 
+'''
 print("If you have NOT performed the required setup above, click x and Enter to exit. Otherwise, press any other key. \n")
 
-'''
 usersays=input()
 if usersays.lower().startswith('x'): 
     print('\nExiting gracefully.\n')
@@ -103,6 +103,8 @@ if sys.argv[2:]:
         rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(cf)
         rdatas[rdata2.mphys] = rdata2
     rk = list(rdatas.keys())
+    print(configfiles)
+    print(rk)
 
     #rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(configfiles)
     
