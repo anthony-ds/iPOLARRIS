@@ -193,7 +193,7 @@ else
     declare -a allmps=()
 
     for simdir in ${simdirs[@]}; do
-
+        
         echo
         echo Selecting wrfout files for analysis in range $stt to $edt...
 
@@ -205,7 +205,6 @@ else
         mpname2=$(echo ${mpnames[ii]})
         echo MP=$(echo $mpname2 | tr '[:lower:]' '[:upper:]')
         echo
-        sleep 3
 
         inputfile2=input_${mpname2}_${stt}_${edt}.txt
         configfile2=config_${mpname2}_${stt}_${edt}.txt

@@ -103,8 +103,6 @@ if sys.argv[2:]:
         rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(cf)
         rdatas[rdata2.mphys] = rdata2
     rk = list(rdatas.keys())
-    print(configfiles)
-    print(rk)
 
     #rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(configfiles)
     
@@ -119,12 +117,23 @@ if sys.argv[2:]:
         os.makedirs(outdir,exist_ok=True)
  
         zmax = config['zmax']
+        if not config['cs_z'] == '': cs_over = True
+        else: cs_over = False
         st = rdatas[rk[0]].date[0].strftime('%Y%m%d_%H%M%S')
         en = rdatas[rk[0]].date[-1].strftime('%Y%m%d_%H%M%S')
 
         if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
         elif st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
-        else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'\n- '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
+        else: dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' - '+en[0:4]+'-'+en[4:6]+'-'+en[6:8]+' '+en[9:11]+':'+en[11:13]+' UTC'
+
+        if len(rk) <= 3:
+            ncols = len(rk)
+            nrows = 1
+            figx = 5
+            figy = 3*nrows
+        else:
+            nrows = 2
+            ncols = int(np.ceil(len(rk)/2))
 
         for i,v in enumerate(eval(config['cfad_compare_vars'])):
             
@@ -135,28 +144,34 @@ if sys.argv[2:]:
                 if v.startswith('HID'):
  
                     print(v)
-
-                    fig, ax = plt.subplots(1,2,figsize=(14,8),gridspec_kw={'wspace': 0.08, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.}) 
+        
+                    fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.1, 'hspace': 0.2, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
                     if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
                         ax = np.array([ax])
                     axf = ax.flatten()
-
-                    if not zmax == '':
-                        rdatas[rk[0]].plot_hid_cdf(ax=axf[0],cbar=False,z_resolution=config['z_resolution'],zmax=zmax)
-                        rdatas[rk[1]].plot_hid_cdf(ax=axf[1],ylab=False,cbar=False,z_resolution=config['z_resolution'],zmax=zmax)
-                    else:
-                        rdatas[rk[0]].plot_hid_cdf(ax=axf[0],cbar=False,z_resolution=config['z_resolution'])
-                        rdatas[rk[1]].plot_hid_cdf(ax=axf[1],ylab=False,cbar=False,z_resolution=config['z_resolution'])
+ 
+                    for j in range(len(rk),ncols*nrows):
+                        fig.delaxes(axf[j])
                     
-                    lur,bur,wur,hur = axf[0].get_position().bounds
-                    lur2,bur2,wur2,hur2 = axf[1].get_position().bounds
+                    for jj in range(len(rk)):
+                        lspanels = [ncols*n for n in range(0,nrows)]
+                        ylabbool = True if jj in lspanels else False
+                        cbpanels = [ncols*n+2 for n in range(0,nrows)]
+                        cbbool = True if i in cbpanels else False
+                        if not zmax == '':
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
+                        else:
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
+                        axf[jj].text(0.01,0.99,rdatas[rk[jj]].mphys.upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+       
+                    axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
+                    axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
+
+                    lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
+                    lur2,bur2,wur2,hur2 = axf[-1].get_position().bounds
                     cbar_ax_dims = [lur,bur-0.15,lur2+wur2,0.05]
                     rdatas[rk[0]].HID_barplot_colorbar(fig,cbar_ax_dims,orientation='horizontal',names='longnames')
-
-                    axf[0].text(0,1,'{e} {r}'.format(e=rdatas[rk[0]].exper,r=rdatas[rk[0]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[0].transAxes)
-                    axf[1].text(0,1,'{e} {r}'.format(e=rdatas[rk[1]].exper,r=rdatas[rk[1]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[1].transAxes)
-                    axf[1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[1].transAxes) # (a) Top-left
-                   
+ 
                     if config['ptype'].startswith('mp4'):
                         plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,t1=st,t2=en),dpi=400,bbox_inches='tight')
                     else: 
