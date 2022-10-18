@@ -70,6 +70,9 @@ else
     fi
 fi
 
+latcen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+loncen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+
 echo
 echo Selecting radar files for analysis in range $stt to $edt...
 echo
@@ -94,13 +97,6 @@ for filepath in $(ls $raddir/* | sort); do
 done
 
 mv $configdir/$tfile $configdir/$inputfile
-
-latcen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
-loncen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
-#latcen=47.116943359375
-#loncen=-124.106666564941
-#latcen=49.0164413452148
-#loncen=-122.487358093262
 
 tfile=tmp_${stt}_${edt}.txt
 
@@ -179,6 +175,40 @@ fi
 
 mv $configdir/$tfile $configdir/$tempfile
 
+if [ ! -z $doppdir ]; then
+
+    echo
+    echo Selecting dual-Doppler files at closest times to range $stt to $edt...
+    echo
+    sleep 3
+
+    dd_on='True'
+    doppfile=dopp_${data}_${stt}_${edt}.txt
+    
+    tfile=dopp.txt
+
+    for filepath in $(ls $doppdir/* | sort); do
+        file=$(basename $filepath) 
+        if [[ "$(ls $raddir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
+            filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
+        else
+            filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
+        fi
+        if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -lt "$(echo $edt | tr -d '_')00" ]; then 
+            echo $filepath >> $configdir/$tfile
+            echo $(basename $filepath)
+        fi
+        if [ "$filedt" -ge "$(echo $edt | tr -d '_')00" ]; then
+            break
+        fi
+    done
+
+    mv $configdir/$tfile $configdir/$doppfile
+
+else
+    dd_on='False'
+fi
+
 if [ -z $simdirs ]; then
     if [[ "$data" == "obs" ]]; then
         fold="obs"
@@ -233,12 +263,6 @@ else
 
 fi
 
-if [ -z $doppdir ]; then
-    dd_on='False'
-else
-    dd_on='True'
-fi
-
 outfigdir=outputfig/${fold}_temp${tempsrc}_${station}_${stt}_${edt}
 outrrdir=$(cd $raddir/../../ && pwd)/radar_rainrates/$station
 mkdir -p $outfigdir $outrrdir
@@ -267,6 +291,9 @@ if [ -z $simdir ]; then
         sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
     elif [[ "$snd_on" == "True" ]]; then
         sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
+    fi
+    if [[ "$dd_on" == "True" ]]; then
+        sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
     fi
     if [[ "$data" == "obs" ]]; then
         sed -i '' "s/.*exper ==.*/exper == $station == # Radar location/g" $configdir/$configfile
@@ -303,7 +330,14 @@ else
     sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo $stt | tr '_' '-')' == # Start time of analysis of interest/g" $configdir/$configfile
     sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo $edt | tr '_' '-')' == # End time of analysis of interest/g" $configdir/$configfile
     sed -i '' "s%.*rfiles ==.*%rfiles == '$configdir/$inputfile' == # Path to list of radar files to read in%g" $configdir/$configfile
-    sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
+    if [[ "$wrft_on" == "True" ]]; then
+        sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
+    elif [[ "$snd_on" == "True" ]]; then
+        sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
+    fi
+    if [[ "$dd_on" == "True" ]]; then
+        sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
+    fi
     sed -i '' "s/.*exper ==.*/exper == $station == # Radar location/g" $configdir/$configfile
     sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" $configdir/$configfile
     sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" $configdir/$configfile
@@ -327,6 +361,9 @@ else
         sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo $edt | tr '_' '-')' == # End time of analysis of interest/g" ${configfiles2[ii]}
         sed -i '' "s%.*rfiles ==.*%rfiles == '${inputfiles2[ii]}' == # Path to list of radar files to read in%g" ${configfiles2[ii]}
         sed -i '' "s%.*wfiles ==.*%wfiles == '${inputfiles2[ii]}' == # Path to list of WRF temperature files to read in%g" ${configfiles2[ii]}
+        if [[ "$dd_on" == "True" ]]; then
+            sed -i '' "s%.*dfiles ==.*%dfiles == '${inputfiles2[ii]}' == # Path to list of dual-Doppler files to read in%g" ${configfiles2[ii]}
+        fi
         sed -i '' "s/.*exper ==.*/exper == $station-$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]') == # Radar location/g" ${configfiles2[ii]}
         sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" ${configfiles2[ii]}
         sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" ${configfiles2[ii]}
