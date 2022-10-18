@@ -122,8 +122,8 @@ if sys.argv[2:]:
         zmax = config['zmax']
         if not config['cs_z'] == '': cs_over = True
         else: cs_over = False
-        st = rdatas[rk[0]].date[0].strftime('%Y%m%d_%H%M%S')
-        en = rdatas[rk[0]].date[-1].strftime('%Y%m%d_%H%M%S')
+        st = rdatas[rk[-1]].date[0].strftime('%Y%m%d_%H%M%S')
+        en = rdatas[rk[-1]].date[-1].strftime('%Y%m%d_%H%M%S')
 
         if st.startswith(en): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+' UTC'
         elif st[0:8].startswith(en[0:8]): dtlab = st[0:4]+'-'+st[4:6]+'-'+st[6:8]+' '+st[9:11]+':'+st[11:13]+'-'+en[9:11]+':'+en[11:13]+' UTC'
@@ -174,13 +174,12 @@ if sys.argv[2:]:
                 axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes)
                 axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes)
 
-                lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
-                lur2,bur2,wur2,hur2 = axf[-1].get_position().bounds
+                lur,bur,wur,hur = axf[int(np.ceil(len(rk)/nrows))].get_position().bounds
+                lur2,bur2,wur2,hur2 = axf[ncols-1].get_position().bounds
+                cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
                 if v.startswith('HID'):
-                    cbar_ax_dims = [lur,bur-0.15,lur2+wur2,0.05]
                     rdatas[rk[0]].HID_barplot_colorbar(fig,cbar_ax_dims,orientation='horizontal',names='longnames')
                 else: 
-                    cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
                     cbar_ax = fig.add_axes(cbar_ax_dims)
                     cbt = plt.colorbar(pc,cax=cbar_ax,orientation='horizontal')
                     cbt.ax.tick_params(labelsize=16)
