@@ -91,7 +91,8 @@ print('#################################################')
 if sys.argv[2:]:
    
     rdatas = {rdata.mphys: rdata}
-    
+    configs = {rdata.mphys: config}
+
     configfiles = sys.argv[2:]
 
     print('\n###############################################################')
@@ -102,6 +103,8 @@ if sys.argv[2:]:
     for cf in configfiles:
         rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(cf)
         rdatas[rdata2.mphys] = rdata2
+        configs[rdata2.mphys] = config2
+
     rk = list(rdatas.keys())
 
     #rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(configfiles)
@@ -136,49 +139,67 @@ if sys.argv[2:]:
             ncols = int(np.ceil(len(rk)/2))
 
         for i,v in enumerate(eval(config['cfad_compare_vars'])):
-            
-            if v is None:
-                continue 
+ 
+            fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.1, 'hspace': 0.2, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
+            if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
+                ax = np.array([ax])
+            axf = ax.flatten()
+
+            for j in range(len(rk),ncols*nrows):
+                fig.delaxes(axf[j])
+        
+            if v is None: continue 
+
             else:
                 
-                if v.startswith('HID'):
- 
-                    print(v)
-        
-                    fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.1, 'hspace': 0.2, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
-                    if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
-                        ax = np.array([ax])
-                    axf = ax.flatten()
- 
-                    for j in range(len(rk),ncols*nrows):
-                        fig.delaxes(axf[j])
-                    
-                    for jj in range(len(rk)):
-                        lspanels = [ncols*n for n in range(0,nrows)]
-                        ylabbool = True if jj in lspanels else False
-                        cbpanels = [ncols*n+2 for n in range(0,nrows)]
-                        cbbool = True if i in cbpanels else False
-                        if not zmax == '':
+                print(v)
+               
+                for jj in range(len(rk)):
+                    lspanels = [ncols*n for n in range(0,nrows)]
+                    ylabbool = True if jj in lspanels else False
+                    cbpanels = [ncols*n+2 for n in range(0,nrows)]
+                    cbbool = True if i in cbpanels else False
+                    if not zmax == '':
+                        if v.startswith('HID'):
                             rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
                         else:
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]][v],ax=axf[jj],ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                    else:
+                        if v.startswith('HID'):
                             rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
-                        axf[jj].text(0.01,0.99,rdatas[rk[jj]].mphys.upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
-       
-                    axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
-                    axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
+                        else:
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]],ax=axf[jj],ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1)
+                    axf[jj].text(0.01,0.99,rdatas[rk[jj]].mphys.upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+   
+                axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes)
+                axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes)
 
-                    lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
-                    lur2,bur2,wur2,hur2 = axf[-1].get_position().bounds
+                lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
+                lur2,bur2,wur2,hur2 = axf[-1].get_position().bounds
+                if v.startswith('HID'):
                     cbar_ax_dims = [lur,bur-0.15,lur2+wur2,0.05]
                     rdatas[rk[0]].HID_barplot_colorbar(fig,cbar_ax_dims,orientation='horizontal',names='longnames')
- 
-                    if config['ptype'].startswith('mp4'):
-                        plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,t1=st,t2=en),dpi=400,bbox_inches='tight')
-                    else: 
-                        plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
+                else: 
+                    cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
+                    cbar_ax = fig.add_axes(cbar_ax_dims)
+                    cbt = plt.colorbar(pc,cax=cbar_ax,orientation='horizontal')
+                    cbt.ax.tick_params(labelsize=16)
+                    cbt.set_ticks(rdatas[rk[0]].cfad_levs)
+                    cbt.set_label('Frequency (%)', fontsize=16, labelpad=10)
 
-                    plt.close()
+                if config['ptype'].startswith('mp4'):
+                    if v.startswith('HID'):
+                        plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,t1=st,t2=en),dpi=400,bbox_inches='tight')
+                    else:
+                        plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[configs[rk[0]][v]],t1=st,t2=en),dpi=400,bbox_inches='tight')        
+                else: 
+                    if v.startswith('HID'):
+                        plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
+                    else:
+                        plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[configs[rk[0]][v]],t1=st,t2=en),dpi=400,bbox_inches='tight',t=config['ptype'])
                 
+                plt.close()
+                '''  
                 else:
 
                     if not rdatas[rk[0]].cfbins[config[v]] == '' and config[v] in rdatas[rk[0]].data.variables.keys():
@@ -221,77 +242,16 @@ if sys.argv[2:]:
                         axf[2].text(0,1,'({e1} - {e2})'.format(e1=rdatas[rk[0]].exper,e2=rdatas[rk[0]].exper),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[2].transAxes)
                         axf[2].text(0.99,0.99, dtlab, horizontalalignment='right', verticalalignment='top', size=18, color='k', zorder=10, weight='bold', transform=axf[2].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0)) # (a) Top-left
                       
-                        if config['ptype'].startswith('mp4'):
-                            plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[config[v]],t1=st,t2=en),dpi=400,bbox_inches='tight')
-                        else: 
-                            plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[config[v]],t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
-        
+       
                         plt.close()
 
                     else:
                         
                         continue
-
+                '''
                 print('\nDone! Saved to '+outdir)
                 print('Moving on.\n')
   
-        '''
-        fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.dz_name,rdata2.dz_name,config,bins=config['dzbins'],xlab=rdata.longnames[rdata.dz_name]+' '+rdata.units[rdata.dz_name],cscfad=False,xlim=[min(rdata.cfbins[rdata.dz_name]),max(rdata.cfbins[rdata.dz_name])],ylim=config['zmax'],nor=10)
-        ax[0].set_title(rdata.exper+' '+rdata.exper,fontsize=16,fontweight='bold')
-        ax[0].set_ylabel('Height (km MSL)',fontsize=16)
-        ax[1].set_title(rdata2.mphys.upper(),fontsize=16,fontweight='bold')
-        ax[3].set_title('({e} - {v})'.format(e=rdata.exper,v=rdata2.mphys.upper()),fontsize=16,fontweight='bold')    
-        plt.savefig('{i}{e}_{m}_{v}_CFAD_diff.{p}'.format(p=config2['ptype'],i=outdir,e=rdata2.exper,m=rdata2.mphys.upper(),v=rdata.dz_name),dpi=400,bbox_inches='tight')
-        plt.close(fig)
-
-        print('\nDone! Saved to '+outdir)
-        print('Moving on.')
-        print('\nPlotting composites by time for variable '+rdata.zdr_name+'...')
-        
-        fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.zdr_name,rdata2.zdr_name,config,bins=config['drbins'],xlab=rdata.longnames[rdata.zdr_name]+' '+rdata.units[rdata.zdr_name],cscfad=False,xlim=[min(config['drbins']),max(config['drbins'])+1],ylim=config['zlim'],nor=3)
-        ax[0].set_title(rdata.exper+' '+rdata.exper,fontsize=16,fontweight='bold')
-        ax[0].set_ylabel('Height (km MSL)',fontsize=16)
-        ax[1].set_title(rdata2.mphys.upper(),fontsize=16,fontweight='bold')
-        ax[3].set_title('({e} - {v})'.format(e=rdata.exper,v=rdata2.mphys.upper()),fontsize=16,fontweight='bold')    
-        plt.savefig('{i}{e}_{m}_{v}_CFAD_diff.{p}'.format(p=config2['ptype'],i=outdir,e=rdata2.exper,m=rdata2.mphys.upper(),v=rdata.zdr_name),dpi=400,bbox_inches='tight')
-        plt.close(fig)
-
-        print('\nDone! Saved to '+outdir)
-        print('Moving on.')
-        print('\nPlotting composites by time for variable '+rdata.kdp_name+'...')
-
-        fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.kdp_name,rdata2.kdp_name,config,bins=config['kdbins'],xlab=rdata.longnames[rdata.kdp_name]+' '+rdata.units[rdata.kdp_name],cscfad=False,xlim=[min(config['kdbins']),max(config['kdbins'])+1],ylim=config['zlim'],nor=3)
-        ax[0].set_title(rdata.exper+' '+rdata.exper,fontsize=16,fontweight='bold')
-        ax[0].set_ylabel('Height (km MSL)',fontsize=16)
-        ax[1].set_title(rdata2.mphys.upper(),fontsize=16,fontweight='bold')
-        ax[3].set_title('({e} - {v})'.format(e=rdata.exper,v=rdata2.mphys.upper()),fontsize=16,fontweight='bold')    
-        plt.savefig('{i}{e}_{m}_{v}_CFAD_diff.{p}'.format(p=config2['ptype'],i=outdir,e=rdata2.exper,m=rdata2.mphys.upper(),v=rdata.kdp_name),dpi=400,bbox_inches='tight')
-        plt.close(fig)
-
-        print('\nDone! Saved to '+outdir)
-        print('Moving on.')
-        print('\nPlotting composites by time for variable '+rdata.hid_name+'...')
-        #fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.w_name,rdata2.w_name,'Vertical Velocity',config,config2,bins=np.arange(-20,21,1),savefig=True,cscfad=False)
-        fig,ax = plot_driver.plot_hid_comparison_cfad(rdata,rdata2,config=config,cscfad=None)
-        ax[0].set_title(rdata.exper+' '+rdata.exper,fontsize=16,fontweight='bold')
-        ax[1].set_title(rdata2.mphys.upper(),fontsize=16,fontweight='bold')
-        plt.setp(ax, ylim=[0,10])
-        plt.savefig('{i}{e}_{m}_{v}_CFAD_diff.{p}'.format(p=config2['ptype'],i=outdir,e=rdata2.exper,m=rdata2.mphys.upper(),v=rdata.hid_name),dpi=400,bbox_inches='tight')
-        plt.close(fig)
-
-        print('\nDone! Saved to '+outdir)
-        print('Moving on.')
-
-    fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.dz_name,rdata2.dz_name,'Reflectivity',config,config2,bins=np.arange(0,82,2),savefig=True,cscfad='convective')
-        
-    fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.zdr_name,rdata2.zdr_name,'Z$_{dr}$',config,config2,bins=np.arange(-2,8,0.2),savefig=True,cscfad='convective')
-    
-    fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.kdp_name,rdata2.kdp_name,'K$_{dp}$',config,config2,bins=np.arange(-2,6,0.2),savefig=True,cscfad='convective')
-    
-    fig,ax = plot_driver.plot_difference_cfad(rdata,rdata2,rdata.w_name,rdata2.w_name,'Vertical Velocity',config,config2,bins=np.arange(-20,21,1),savefig=True,cscfad='convective')
-
-    fig,ax = plot_driver.plot_hid_comparison_cfad(rdata,rdata2,config=config,cscfad='convective',savefig=True)
-    '''
     print('\niPOLARRIS RUN COMPLETE FOR '+config2['mphys'].upper()+' '+config['sdatetime']+' - '+config['edatetime']+'\n')
 
 ################################################################################
