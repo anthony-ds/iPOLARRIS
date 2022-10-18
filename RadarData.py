@@ -2427,11 +2427,13 @@ class RadarData(RadarConfig.RadarConfig):
             labs = np.array(self.species_long)
             cb.set_ticklabels(labs)
             cb.ax.tick_params(labelsize=lblsz)
+            cb.set_label(self.longnames['HID'], fontsize=16, labelpad=10)
         else: 
             labs = np.array(self.species)
             cb.set_ticklabels(labs)
             cb.ax.tick_params(labelsize=lblsz)
-         
+            cb.set_label(self.names_uc['HID'], fontsize=16, labelpad=10)
+          
         return cb
 
     def plot_hid_cdf(self, ax=None, xlab=1, ylab=1, zmax=None, cbar=1, data=None, z_resolution=1.0, pick=None, cs_over = False, cscfad = None):
