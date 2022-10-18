@@ -281,6 +281,7 @@ def polarris_driver(configfile):
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim,combine='by_coords')
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim)
 
+
     if config['type'].startswith('wrf'):
         refvals = deepcopy(rvar[config['dz_name']].values)
         refvals[refvals < float(config['refthresh'])] = np.nan
@@ -327,7 +328,7 @@ def polarris_driver(configfile):
         else: hgt = rvar['hgt'].values
         newz = xr.DataArray(hgt, coords={'z': hgt})
         rvar['z'] = newz
-
+    
     if drop_vars:
         print("dropping extra variables for memory!")
         rvar= rvar.drop(['vrad03','vdop02','elev03','elev02','vdop03','vang02','vang03','vrad02','zhh02','zhh03','zdr02','zdr03','kdp02','kdp03','rhohv02','rhohv03'])
@@ -340,7 +341,8 @@ def polarris_driver(configfile):
     # =====
 
     if config['dd_on']:
-        print('In your config file, dd_on is set to True.')
+        
+        print('\nIn your config file, dd_on is set to True.')
         time.sleep(3)
         with open(config['dfiles'], 'r') as g:
             dfiles1 = g.read().splitlines()
@@ -364,8 +366,31 @@ def polarris_driver(configfile):
             dvar = xr.open_mfdataset(dfiles1,concat_dim='d')
         except ValueError as ve:
             print('Trying nested instead of concat_dim to read DD files')
-            dvar = xr.open_mfdataset(dfiles1,combine='nested',concat_dim='d')
+            #dvar = xr.open_mfdataset(dfiles1,combine='nested',concat_dim='d')
+            dvar = xr.open_mfdataset(dfiles1,autoclose=True,combine='nested',concat_dim='d',preprocess=reduce_dim)
             nf= len(dfiles1)
+
+        if config['type'].startswith('obs'):
+            currz = deepcopy(dvar['z'].values)
+            newz = xr.DataArray(0.001*currz, dims=['z'], name='z')
+            dvar['z'] = newz
+            
+        elif config['type'].startswith('wrf'):
+            dvar = rvar.rename({config['xname']:'x'})
+            dvar = rvar.rename({config['yname']:'y'})
+             
+            currx = deepcopy(dvar['x'].values)
+            newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
+            dvar['x'] = newx
+            
+            curry = deepcopy(dvar['y'].values)
+            newy = xr.DataArray(curry-np.mean(curry), dims=['y'], name='y')
+            dvar['y'] = newy
+
+            if 'd' in rvar['hgt'].dims: hgt = dvar['hgt'].values[0,:]
+            else: hgt = dvar['hgt'].values
+            newz = xr.DataArray(hgt, coords={'z': hgt})
+            dvar['z'] = newz
         
         # NEW! MultiDop names velocity fields in long-form. Shorten fieldnames in dopp files here for plotting labels.
         Uname = 'U'
@@ -408,14 +433,14 @@ def polarris_driver(configfile):
                 if dfile in dfiles1:
                     i = dfiles1.index(dfile)
                     #wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['wname']].sel(d=i)
-                    wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
                     unew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Uname][i,:,:,:]
                     vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Vname][i,:,:,:]
+                    wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
                     #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
 
-        rvar[Wname] = (['d','z','y','x'],wvar)
         rvar[Uname] = (['d','z','y','x'],unew)
         rvar[Vname] = (['d','z','y','x'],vnew)
+        rvar[Wname] = (['d','z','y','x'],wvar)
 
     else:
         Uname = None
