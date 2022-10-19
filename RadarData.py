@@ -1091,7 +1091,7 @@ class RadarData(RadarConfig.RadarConfig):
                 cbt.ax.tick_params(labelsize=16)
                 cbt.set_label(self.names_uc[var]+' '+self.units[var], fontsize=16, rotation=270, labelpad=20)
             else:
-                self.mycbar(fig,ax,dummy,self.longnames[var]+' '+self.units[var])
+                self.mycbar(fig,ax,dummy,self.names_uc[var]+' '+self.units[var])
 
         if cbar == 2 and var.startswith('HID'):
             lur,bur,wur,hur = ax.get_position().bounds
