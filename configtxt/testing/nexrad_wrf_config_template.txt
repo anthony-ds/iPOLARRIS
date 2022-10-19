@@ -87,9 +87,9 @@ cs_z ==  == # Set to altitude (km) (e.g. 2) for determining convective / stratif
 dd_on ==  == # Set this to loop through separate dual-Doppler files (e.g. for obs)
 
 # Args
-ddate_format	== %Y%m%d_%H%M%S		                        == # Format for the dual-Doppler file date
-ddstart	    	== 10				                            == # Offset for dual-Doppler timestamp in filename
-ddend		    == 25				                            == # Offset for dual-Doppler timestamp in filename
+ddate_format	== %Y-%m-%d_%H:%M:%S		                        == # Format for the dual-Doppler file date
+ddstart	    	== 16				                            == # Offset for dual-Doppler timestamp in filename
+ddend		    == 35				                            == # Offset for dual-Doppler timestamp in filename
 
 # Variables (NOTE: use NCDUMP to locate variable names of Doppler radar fields and info)
 convname	== None			        == # Name of 
@@ -103,8 +103,8 @@ sdatetime_format == %Y%m%d-%H%M == # Start time format
 edatetime_format == %Y%m%d-%H%M == # End time format
 
 rdate_format	== %Y-%m-%d_%H:%M:%S	                        == # Format for the radar file date
-rdend		    == 35				                            == # End of date timestamp in radar filename
 rdstart		    == 16				                            == # Start of date timestamp in radar filename
+rdend		    == 35				                            == # End of date timestamp in radar filename
 
 # Variables (NOTE: use NCDUMP to locate variable names of radar observables and info)
 dz_name == zhh01 == # Name of the reflectivity field
@@ -210,7 +210,7 @@ rvectors == [None,None,None,None,None,True]                          ==#Turn on 
 skip == 2                                  ==#Number of vectors to skip for the vector plots.
 mix_vars ==['qc','qr','qg','qi','qh',config['rr_name'] if config['rr_on'] else '',config['vr_name'],'HID' if config['hid_on'] else None]   ==#Mixing ratios from model to plot.
 rhi_vars ==[config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],'HID' if config['hid_on'] else None,config['wname'] if config['dd_on'] else None] == #Names of vars for RHI plots
-cfad_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],'HID' if config['hid_on'] else None,config['wname'] if config['dd_on'] else None] == #Names of vars for CFAD plots
+cfad_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],config['wname'] if config['dd_on'] else None,'HID' if config['hid_on'] else None] == #Names of vars for CFAD plots
 cfad_compare_vars == ['HID' if config['hid_on'] else None,'dz_name','dr_name','kd_name','rh_name','wname' if config['dd_on'] else None] == #Names of vars for CFAD plots
 #cfad_vars == ['HID'] == #Names of vars for CAPPI plots
 cappi_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],config['vr_name'],'HID' if config['hid_on'] is not '' else None] == #Names of vars for CAPPI plots

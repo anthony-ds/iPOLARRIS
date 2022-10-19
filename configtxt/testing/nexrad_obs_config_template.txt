@@ -22,7 +22,7 @@ ylim ==  == #lat / lon zoom for CAPPIS
 ylim == [-150,150] == #lat / lon zoom for CAPPIS
 zmax == 10 ==
 
-y == 0.5 == # Lat of the y cross-section for RHI
+y ==  == # Lat of the y cross-section for RHI
 #y == 0.5 == # Lat of the y cross-section for RHI
 #z == 0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0 == # Height of the CAPPIs
 z == 2.0 == # Height of the CAPPIs
@@ -89,8 +89,10 @@ dd_on ==  == # Set this to loop through separate dual-Doppler files
 
 # Args
 ddate_format	== %Y%m%d_%H%M%S		                        == # Format for the dual-Doppler file date
-ddstart	    	== 10				                            == # Offset for dual-Doppler timestamp in filename
-ddend		    == 25				                            == # Offset for dual-Doppler timestamp in filename
+ddstart	    	== 5				                            == # Offset for dual-Doppler timestamp in filename
+ddend		    == 20				                            == # Offset for dual-Doppler timestamp in filename
+#ddstart	    == 10				                            == # Offset for dual-Doppler timestamp in filename
+#ddend		    == 25				                            == # Offset for dual-Doppler timestamp in filename
 
 # Variables (NOTE: use NCDUMP to locate variable names of Doppler radar fields and info)
 convname	== None			        == # Name of 
@@ -104,8 +106,8 @@ sdatetime_format == %Y%m%d-%H%M == # Start time format
 edatetime_format == %Y%m%d-%H%M == # End time format
 
 rdate_format	== %Y%m%d_%H%M%S		                    == # Format for the radar file date
-rdend		    == 20				                        == # End of date timestamp in radar filename
 rdstart		    == 5				                        == # Start of date timestamp in radar filename
+rdend		    == 20				                        == # End of date timestamp in radar filename
 
 # Variables (NOTE: use NCDUMP to locate variable names of radar observables and info)
 dz_name == REF == # Name of the reflectivity field
@@ -115,9 +117,12 @@ rh_name == RHO == # Name of the RhoHV field
 rr_name == None == # Name of the Rain rate / precipitation field
 vr_name == VEL == # Name of radial velocity field
 t_name == T == # Name of the temperature field
-uname == eastward_wind == # Name of the zonal wind field
-vname == northward_wind == # Name of the meridional wind field
-wname == upward_air_velocity == # Name of the vertical wind field
+uname == u == # Name of the zonal wind field
+vname == v == # Name of the meridional wind field
+wname == w == # Name of the vertical wind field
+#uname		== eastward_wind	    == # Name of the zonal wind field
+#vname		== northward_wind	    == # Name of the meridional wind field
+#wname		== upward_air_velocity	== # Name of the vertical wind field
 xname == x0 == # File naming of the zonal directional variable
 yname == y0 == # File naming of the meridional directional variables
 zname == z0 == # File naming of the vertical level field
@@ -136,8 +141,8 @@ band == S == # Radar band: X, C OR S. Note: needs to be capital letter.
 
 # SET 1) Plots created in run_ipolarris.py
 all1		    == False	    == # Set to True to output ALL figures in SET 1 below
-compo_ref	    == True	    == # 1) Set to True to plot for spatial composite reflectivity plotting (1 figure per timestep)
-cappi_rr	    == True	    == # 3) Set to True to plot rain rate CAPPI at some altitude z (set z below) 
+compo_ref	    == False	    == # 1) Set to True to plot for spatial composite reflectivity plotting (1 figure per timestep)
+cappi_rr	    == False	    == # 3) Set to True to plot rain rate CAPPI at some altitude z (set z below) 
 rr_timeseries	== False	    == # 4) Set to True to plot a time series of convective and stratiform rain rate
 vv_profiles	    == False	    == # 5) Set to True to plot vertical profiles of the 50th, 90th and 99th percentile of updraft, downdrafts and overall vertical velocity
 vert_ref	    == False	    == # 5) Set to True to plot vertical profile of reflectivity with height
@@ -154,12 +159,12 @@ percentiles_txt		== False	    == # 10)
 all3			    == False	    == Set to TRUE to output ALL figures in SET 3 below
 pol_compare		    == False	    == # 13) Set to True to plot 4-panel of CFADs of Z, ZDR, KDP and W
 hist_multi		    == False	    == # 15) Set to True to plot 4-panel of comparison figures between various polarimetric vars
-cfad_multi		    == True	    == # 13) Set to True to plot x-panel of CFADs for x polarimetric variables
+cfad_multi		    == False	    == # 13) Set to True to plot x-panel of CFADs for x polarimetric variables
 cfad_individ		== False 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
 cfad_compare		== True 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
 hid_prof		    == False	    == # 17) Set to True to plot vertical profile of grouped HID species with height
 up_width		    == False	    == # 18) Set to True to plot vertical profile of updraft width with temperature.
-cappi_multi		    == True	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
+cappi_multi		    == False	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
 cappi_individ	    == False	    == # 20) Set to True to plot a CAPPI for x individual polarimetric variables at some altitude z (set z below; 1 figure per timestep)
 rhi_multi		    == True	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
 rhi_individ		    == False	    == # 22) Set to True to plot an RHI for x individual polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
@@ -210,7 +215,7 @@ rvectors == [None,None,None,None,None,True]                          ==#Turn on 
 skip == 2                                  ==#Number of vectors to skip for the vector plots.
 mix_vars ==['qc','qr','qg','qi','qh',config['rr_name'] if config['rr_on'] else '',config['vr_name'],'HID' if config['hid_on'] else None]   ==#Mixing ratios from model to plot.
 rhi_vars ==[config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],'HID' if config['hid_on'] else None,config['wname'] if config['dd_on'] else None] == #Names of vars for RHI plots
-cfad_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],'HID' if config['hid_on'] else None,config['wname'] if config['dd_on'] else None] == #Names of vars for CFAD plots
+cfad_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],config['wname'] if config['dd_on'] else None,'HID' if config['hid_on'] else None] == #Names of vars for CFAD plots
 cfad_compare_vars == ['HID' if config['hid_on'] else None,'dz_name','dr_name','kd_name','rh_name','wname' if config['dd_on'] else None] == #Names of vars for CFAD plots
 #cfad_vars == ['HID'] == #Names of vars for CAPPI plots
 cappi_vars == [config['dz_name'],config['dr_name'],config['kd_name'],config['rh_name'],config['vr_name'],'HID' if config['hid_on'] is not '' else None] == #Names of vars for CAPPI plots
