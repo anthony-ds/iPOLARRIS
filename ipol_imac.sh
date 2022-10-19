@@ -192,7 +192,8 @@ if [ ! -z $doppdir ]; then
         if [[ "$(ls $raddir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
             filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
         else
-            filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
+            filedt=$(echo $file | cut -d '_' -f2)$(echo $file | cut -d '_' -f3)
+            #filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
         fi
         if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -lt "$(echo $edt | tr -d '_')00" ]; then 
             echo $filepath >> $configdir/$tfile
