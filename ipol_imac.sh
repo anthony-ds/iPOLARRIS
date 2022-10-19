@@ -192,8 +192,8 @@ if [ ! -z $doppdir ]; then
         if [[ "$(ls $raddir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
             filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
         else
-            filedt=$(echo $file | cut -d '_' -f2)$(echo $file | cut -d '_' -f3)
-            #filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
+            #filedt=$(echo $file | cut -d '_' -f2)$(echo $file | cut -d '_' -f3)
+            filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
         fi
         if [ "$filedt" -ge "$(echo $stt | tr -d '_')00" ] && [ "$filedt" -lt "$(echo $edt | tr -d '_')00" ]; then 
             echo $filepath >> $configdir/$tfile
@@ -371,8 +371,8 @@ else
         sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" ${configfiles2[ii]}
         sed -i '' "s%.*rr_dir ==.*%rr_dir == '$outrrdir/' == # Output rain rate netcdf directory%g" ${configfiles2[ii]}
         sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" ${configfiles2[ii]}
-        sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" ${configfiles2[ii]}
-        sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" ${configfiles2[ii]}
+        sed -i '' "s/.*snd_on ==.*/snd_on == False == # Sounding temperature on/g" ${configfiles2[ii]}
+        sed -i '' "s/.*wrft_on ==.*/wrft_on == True == # WRF temperature on/g" ${configfiles2[ii]}
 
     done
 
