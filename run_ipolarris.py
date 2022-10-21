@@ -140,7 +140,7 @@ if sys.argv[2:]:
 
         for i,v in enumerate(eval(config['cfad_compare_vars'])):
  
-            fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.1, 'hspace': 0.2, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
+            fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.08, 'hspace': 0.08, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
             if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
                 ax = np.array([ax])
             axf = ax.flatten()
@@ -155,8 +155,8 @@ if sys.argv[2:]:
                 print(v)
                
                 for jj in range(len(rk)):
-                    botpanels = np.arange(nvars-ncols,len(rk))
-                    xlabbool = True if i in botpanels else False
+                    botpanels = np.arange(len(rk)-ncols,len(rk))
+                    xlabbool = True if jj in botpanels else False
                     lspanels = [ncols*n for n in range(0,nrows)]
                     ylabbool = True if jj in lspanels else False
                     cbpanels = [ncols*n+2 for n in range(0,nrows)]
