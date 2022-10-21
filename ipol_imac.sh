@@ -70,8 +70,11 @@ else
     fi
 fi
 
-latcen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
-loncen=$(cat $(realpath $raddir/../../../radar_specs/${station}_specs.txt) | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+path2specs=$(realpath $raddir/../../../radar_specs/${station}_specs.txt)
+#path2specs=$(realpath $raddir/../../${station}_specs.txt)
+
+latcen=$(cat $path2specs | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+loncen=$(cat $path2specs | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 
 echo
 echo Selecting radar files for analysis in range $stt to $edt...
