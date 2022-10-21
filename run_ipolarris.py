@@ -155,20 +155,23 @@ if sys.argv[2:]:
                 print(v)
                
                 for jj in range(len(rk)):
+                    botpanels = np.arange(nvars-ncols,len(rk))
+                    xlabbool = True if i in botpanels else False
                     lspanels = [ncols*n for n in range(0,nrows)]
                     ylabbool = True if jj in lspanels else False
                     cbpanels = [ncols*n+2 for n in range(0,nrows)]
                     cbbool = True if i in cbpanels else False
                     if not zmax == '':
                         if v.startswith('HID'):
-                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
                         else:
-                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]][v],ax=axf[jj],ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]][v],ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
                     else:
                         if v.startswith('HID'):
-                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
                         else:
-                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]],ax=axf[jj],ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1)
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]],ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1)
+                    
                     axf[jj].text(0.01,0.99,rdatas[rk[jj]].mphys.upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
    
                 axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes)
