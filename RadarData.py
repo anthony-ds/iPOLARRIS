@@ -2432,7 +2432,7 @@ class RadarData(RadarConfig.RadarConfig):
             labs = np.array(self.species)
             cb.set_ticklabels(labs)
             cb.ax.tick_params(labelsize=lblsz)
-            cb.set_label(self.names_uc['HID'], fontsize=16, labelpad=10)
+            cb.set_label(self.names_uc['HID'], fontsize=16, labelpad=15, rotation=270)
           
         return cb
 
