@@ -283,8 +283,15 @@ def polarris_driver(configfile):
 
 
     if config['type'].startswith('wrf'):
+        
         refvals = deepcopy(rvar[config['dz_name']].values)
         refvals[refvals < float(config['refthresh'])] = np.nan
+        
+        elevs = deepcopy(rvar['elev01'].values) 
+        elevs = np.where(elevs < 0.0,np.nan,elevs)
+        refvals[elevs > float(config['costhresh'])] = np.nan
+        test = np.where(elevs > float(config['costhresh']), np.nan, elevs)
+
         newref = xr.DataArray(refvals, dims=['d','z','y','x'], name=config['dz_name'])
         rvar[config['dz_name']] = newref
         
@@ -292,7 +299,6 @@ def polarris_driver(configfile):
         for v in parsers:
             newvals = deepcopy(rvar[config[v]].values)
             newvals = np.where(newvals == -999.0,np.nan,newvals)
-            #newvals = np.where(np.logical_and(newvals >= 0.0,newvals < 0.1),np.nan,newvals)
             newvals = np.where(newvals == 0.0,np.nan,newvals)
             newvals = np.where(np.isnan(refvals),np.nan,newvals)
             newvar = xr.DataArray(newvals, dims=['d','z','y','x'], name=config[v])
@@ -328,7 +334,7 @@ def polarris_driver(configfile):
         else: hgt = rvar['hgt'].values
         newz = xr.DataArray(hgt, coords={'z': hgt})
         rvar['z'] = newz
-    
+
     if drop_vars:
         print("dropping extra variables for memory!")
         rvar= rvar.drop(['vrad03','vdop02','elev03','elev02','vdop03','vang02','vang03','vrad02','zhh02','zhh03','zdr02','zdr03','kdp02','kdp03','rhohv02','rhohv03'])
@@ -437,6 +443,11 @@ def polarris_driver(configfile):
                     vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Vname][i,:,:,:]
                     wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
                     #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
+
+        if config['type'].startswith('wrf'):
+            unew[elevs > float(config['costhresh'])] = np.nan
+            vnew[elevs > float(config['costhresh'])] = np.nan
+            wvar[elevs > float(config['costhresh'])] = np.nan
 
         rvar[Uname] = (['d','z','y','x'],unew)
         rvar[Vname] = (['d','z','y','x'],vnew)

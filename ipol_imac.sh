@@ -75,6 +75,7 @@ path2specs=$(realpath $raddir/../../../radar_specs/${station}_specs.txt)
 
 latcen=$(cat $path2specs | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 loncen=$(cat $path2specs | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+maxelev=$(cat $path2specs | grep "max_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 
 echo
 echo Selecting radar files for analysis in range $stt to $edt...
@@ -306,6 +307,7 @@ if [ -z $simdir ]; then
     fi
     sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" $configdir/$configfile
     sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" $configdir/$configfile
+    sed -i '' "s/costhresh ==.*/costhresh == $maxelev == # Elevation angle threshold for cone of silence/g" $configdir/$configfile
     sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" $configdir/$configfile
     sed -i '' "s%.*rr_dir ==.*%rr_dir == '$outrrdir/' == # Output rain rate netcdf directory%g" $configdir/$configfile
     sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" $configdir/$configfile
@@ -371,6 +373,7 @@ else
         sed -i '' "s/.*exper ==.*/exper == $station-$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]') == # Radar location/g" ${configfiles2[ii]}
         sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" ${configfiles2[ii]}
         sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" ${configfiles2[ii]}
+        sed -i '' "s/costhresh ==.*/costhresh == $maxelev == # Elevation angle threshold for cone of silence/g" ${configfiles2[ii]}
         sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" ${configfiles2[ii]}
         sed -i '' "s%.*rr_dir ==.*%rr_dir == '$outrrdir/' == # Output rain rate netcdf directory%g" ${configfiles2[ii]}
         sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" ${configfiles2[ii]}
