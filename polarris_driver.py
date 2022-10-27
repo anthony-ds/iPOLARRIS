@@ -288,9 +288,9 @@ def polarris_driver(configfile):
         refvals[refvals < float(config['refthresh'])] = np.nan
         
         elevs = deepcopy(rvar['elev01'].values) 
-        elevs = np.where(elevs < 0.0,np.nan,elevs)
-        refvals[elevs > float(config['costhresh'])] = np.nan
-        test = np.where(elevs > float(config['costhresh']), np.nan, elevs)
+        elevs = np.where(elevs < float(config['mincosthresh']),np.nan,elevs)
+        refvals[elevs > float(config['maxcosthresh'])] = np.nan
+        test = np.where(elevs > float(config['maxcosthresh']), np.nan, elevs)
 
         newref = xr.DataArray(refvals, dims=['d','z','y','x'], name=config['dz_name'])
         rvar[config['dz_name']] = newref
@@ -445,15 +445,19 @@ def polarris_driver(configfile):
                     #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
 
         if config['type'].startswith('wrf'):
-            unew[elevs > float(config['costhresh'])] = np.nan
-            vnew[elevs > float(config['costhresh'])] = np.nan
-            wvar[elevs > float(config['costhresh'])] = np.nan
+            unew[elevs < float(config['mincosthresh'])] = np.nan
+            unew[elevs > float(config['maxcosthresh'])] = np.nan
+            vnew[elevs < float(config['mincosthresh'])] = np.nan
+            vnew[elevs > float(config['maxcosthresh'])] = np.nan
+            wvar[elevs < float(config['mincosthresh'])] = np.nan
+            wvar[elevs > float(config['maxcosthresh'])] = np.nan
 
         rvar[Uname] = (['d','z','y','x'],unew)
         rvar[Vname] = (['d','z','y','x'],vnew)
         rvar[Wname] = (['d','z','y','x'],wvar)
 
     else:
+
         Uname = None
         Vname = None
         Wname = None

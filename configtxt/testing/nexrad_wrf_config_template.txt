@@ -48,7 +48,8 @@ ptype ==  == # Output figure file extenstion (i.e. png, jpg, mp4, ...)
 exper ==  == # Radar location
 lat ==  == # Latitude of the radar station
 lon ==  == # Longitude of the radar station
-costhresh ==  == # Threshold for cone of silence
+mincosthresh ==  == # Min. threshold for simulated cone of silence
+maxcosthresh ==  == # Max. threshold for simulated cone of silence
 
 #------------------------------------------------------------------
 #------ Sounding File Reading (REQUIRED if wfrt_on == False) ------
@@ -189,7 +190,6 @@ hidsnow		== [3,4,5,6]	== # Group ice crystals, snow, wet snow and VI
 ###############Set up variable names and how to read the data###############
 z_resolution == 0.5                   ==#Vertical resolution for CFADs. If comparing 2, they need to be the same.
 refthresh == -10.                       ==#Threshold for good data
-costhresh ==  == # Threshold for cone of silence
 wthresh == 5.                         ==#Threshold for 'updraft' statistics.
 zconv == 40                         ==#Zconv threshold in raintyping algorithm.
 conv_types == ['ISO_CONV_CORE','CONVECTIVE','ISO_CS_CORE']      ==#Which Powell et al. types to consider in convective CFADS
