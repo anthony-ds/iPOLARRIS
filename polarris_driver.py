@@ -285,12 +285,11 @@ def polarris_driver(configfile):
     if config['type'].startswith('wrf'):
         
         refvals = deepcopy(rvar[config['dz_name']].values)
-        refvals[refvals < float(config['refthresh'])] = np.nan
+        refvals = np.where(refvals < float(config['refthresh']), np.nan, refvals)
         
         elevs = deepcopy(rvar['elev01'].values) 
-        elevs = np.where(elevs < float(config['mincosthresh']),np.nan,elevs)
-        refvals[elevs > float(config['maxcosthresh'])] = np.nan
-        test = np.where(elevs > float(config['maxcosthresh']), np.nan, elevs)
+        elevs = np.where(elevs < float(config['mincosthresh']), np.nan, elevs)
+        refvals = np.where(elevs > float(config['maxcosthresh']), np.nan, refvals) 
 
         newref = xr.DataArray(refvals, dims=['d','z','y','x'], name=config['dz_name'])
         rvar[config['dz_name']] = newref
@@ -406,14 +405,14 @@ def polarris_driver(configfile):
         dvar = dvar.rename({config['vname']:Vname})
         dvar = dvar.rename({config['wname']:Wname})
 
-        wvar = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
-        wvar.fill(np.nan)
-
         unew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
         unew.fill(np.nan)
 
         vnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
         vnew.fill(np.nan)
+
+        wnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
+        wnew.fill(np.nan)
 
         conv = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
         conv.fill(np.nan)
@@ -441,20 +440,17 @@ def polarris_driver(configfile):
                     #wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['wname']].sel(d=i)
                     unew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Uname][i,:,:,:]
                     vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Vname][i,:,:,:]
-                    wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
+                    wnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
                     #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
 
         if config['type'].startswith('wrf'):
-            unew[elevs < float(config['mincosthresh'])] = np.nan
-            unew[elevs > float(config['maxcosthresh'])] = np.nan
-            vnew[elevs < float(config['mincosthresh'])] = np.nan
-            vnew[elevs > float(config['maxcosthresh'])] = np.nan
-            wvar[elevs < float(config['mincosthresh'])] = np.nan
-            wvar[elevs > float(config['maxcosthresh'])] = np.nan
+            unew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],unew == -999.0)), np.nan, unew)
+            vnew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],vnew == -999.0)), np.nan, vnew)
+            wnew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],wvar == -999.0)), np.nan, wnew)
 
         rvar[Uname] = (['d','z','y','x'],unew)
         rvar[Vname] = (['d','z','y','x'],vnew)
-        rvar[Wname] = (['d','z','y','x'],wvar)
+        rvar[Wname] = (['d','z','y','x'],wnew)
 
     else:
 
