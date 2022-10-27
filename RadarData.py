@@ -1029,7 +1029,11 @@ class RadarData(RadarConfig.RadarConfig):
             fig = ax.get_figure()
 
         if var in self.lims.keys():
-            dummy = ax.pcolormesh(xdat, zdat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], **kwargs)
+            if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+                norm = colors.TwoSlopeNorm(vmin=self.lims[var][0],vcenter=0,vmax=self.lims[var][1])
+                dummy = ax.pcolormesh(xdat, zdat, data, norm = norm, cmap = self.cmaps[var], **kwargs)
+            else:
+                dummy = ax.pcolormesh(xdat, zdat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], **kwargs) 
         else:
             dat = self.data[var].values
             dat[dat<-900.0]=np.nan
@@ -1280,9 +1284,18 @@ class RadarData(RadarConfig.RadarConfig):
         
         if var in self.lims.keys():
             if latlon:
-                dummy = ax.pcolormesh(xdat,ydat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], transform=ccrs.PlateCarree(), **kwargs)
+                if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+                    norm = colors.TwoSlopeNorm(vmin=self.lims[var][0], vcenter=0, vmax=self.lims[var][1]) 
+                    dummy = ax.pcolormesh(xdat,ydat, data, norm = norm, cmap = self.cmaps[var], transform=ccrs.PlateCarree(), **kwargs)
+                else:
+                    dummy = ax.pcolormesh(xdat,ydat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], transform=ccrs.PlateCarree(), **kwargs)
+                    
             else:
-                dummy = ax.pcolormesh(xdat,ydat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], **kwargs)
+                if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+                    norm = colors.TwoSlopeNorm(vmin=self.lims[var][0], vcenter=0, vmax=self.lims[var][1]) 
+                    dummy = ax.pcolormesh(xdat,ydat, data, norm = norm, cmap = self.cmaps[var], **kwargs)
+                else:
+                    dummy = ax.pcolormesh(xdat,ydat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], **kwargs)
                 
         else:
             dat = self.data[var].data
@@ -3074,6 +3087,7 @@ class RadarData(RadarConfig.RadarConfig):
         cbar_ax_dims = [lur+wur+0.015,bur,0.03,hur]
         cbar_ax = fig.add_axes(cbar_ax_dims)
         cbt = plt.colorbar(cb,cax=cbar_ax)
+        cbt.ax.set_yscale('linear')
         cbt.ax.tick_params(labelsize=16)
         cbt.set_label(labtxt, fontsize=16, rotation=270, labelpad=20)
 
