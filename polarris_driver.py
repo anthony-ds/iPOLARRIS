@@ -444,9 +444,12 @@ def polarris_driver(configfile):
                     #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
 
         if config['type'].startswith('wrf'):
-            unew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],unew == -999.0)), np.nan, unew)
-            vnew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],vnew == -999.0)), np.nan, vnew)
-            wnew = np.where(np.logical_and(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'],wvar == -999.0)), np.nan, wnew)
+            unew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, unew)
+            unew = np.where(unew == -999.0, np.nan, unew)
+            vnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, vnew)
+            vnew = np.where(vnew == -999.0, np.nan, vnew)
+            wnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, wnew)
+            wnew = np.where(wnew == -999.0, np.nan, wnew)
 
         rvar[Uname] = (['d','z','y','x'],unew)
         rvar[Vname] = (['d','z','y','x'],vnew)
