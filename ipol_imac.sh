@@ -77,6 +77,7 @@ latcen=$(cat $path2specs | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 |
 loncen=$(cat $path2specs | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 minelev=$(cat $path2specs | grep "min_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 maxelev=$(cat $path2specs | grep "max_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+band=$(cat $path2specs | grep "frequency_band =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 
 echo
 echo Selecting radar files for analysis in range $stt to $edt...
@@ -308,6 +309,7 @@ if [ -z $simdir ]; then
     fi
     sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" $configdir/$configfile
     sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" $configdir/$configfile
+    sed -i '' "s/band ==.*/band == $band == # Frequency band/g" $configdir/$configfile
     sed -i '' "s/mincosthresh ==.*/mincosthresh == $minelev == # Min. elevation angle threshold for cone of silence/g" $configdir/$configfile
     sed -i '' "s/maxcosthresh ==.*/maxcosthresh == $maxelev == # Max. elevation angle threshold for cone of silence/g" $configdir/$configfile
     sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" $configdir/$configfile
@@ -347,6 +349,7 @@ else
         sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
     fi
     sed -i '' "s/.*exper ==.*/exper == $station == # Radar location/g" $configdir/$configfile
+    sed -i '' "s/band ==.*/band == $band == # Frequency band/g" $configdir/$configfile
     sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" $configdir/$configfile
     sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" $configdir/$configfile
     sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" $configdir/$configfile
@@ -375,6 +378,7 @@ else
         sed -i '' "s/.*exper ==.*/exper == $station-$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]') == # Radar location/g" ${configfiles2[ii]}
         sed -i '' "s/lat ==  == #.*/lat == $latcen == # Latitude of the radar station/g" ${configfiles2[ii]}
         sed -i '' "s/lon ==  == #.*/lon == $loncen == # Longitude of the radar station/g" ${configfiles2[ii]}
+        sed -i '' "s/band ==.*/band == $band == # Frequency band/g" ${configfiles2[ii]}
         sed -i '' "s/mincosthresh ==.*/mincosthresh == $minelev == # Min. elevation angle threshold for cone of silence/g" ${configfiles2[ii]}
         sed -i '' "s/maxcosthresh ==.*/maxcosthresh == $maxelev == # Max. elevation angle threshold for cone of silence/g" ${configfiles2[ii]}
         sed -i '' "s%.*image_dir ==.*%image_dir == '$outfigdir/' == # Output figure directory%g" ${configfiles2[ii]}
