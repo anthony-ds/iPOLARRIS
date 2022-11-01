@@ -177,7 +177,7 @@ if sys.argv[2:]:
                 axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes)
                 axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes)
 
-                lur,bur,wur,hur = axf[int(np.ceil(len(rk)/nrows))].get_position().bounds
+                lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
                 lur2,bur2,wur2,hur2 = axf[ncols-1].get_position().bounds
                 cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
                 if v.startswith('HID'):
