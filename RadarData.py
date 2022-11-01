@@ -2079,7 +2079,7 @@ class RadarData(RadarConfig.RadarConfig):
         else:
             ax.tick_params(axis='x',labelsize=0,left=False)
         if cbar:
-            cbar = self.mycbar(fig,ax,pc,'Frequency (%)')
+            cbar = self.mycbar(fig,ax,pc,'Frequency (%)',cbarlin=False)
             cbar.set_ticks(self.cfad_levs)
         if ylab: 
             ax.set_ylabel('Height (km MSL)',fontsize=16)
@@ -3081,13 +3081,13 @@ class RadarData(RadarConfig.RadarConfig):
                 ax.yaxis.set_ticks_position('none')
 
 
-    def mycbar(self,fig,ax,cb,labtxt):        
+    def mycbar(self,fig,ax,cb,labtxt,cbarlin=True):        
         
         lur,bur,wur,hur = ax.get_position().bounds
         cbar_ax_dims = [lur+wur+0.015,bur,0.03,hur]
         cbar_ax = fig.add_axes(cbar_ax_dims)
         cbt = plt.colorbar(cb,cax=cbar_ax)
-        cbt.ax.set_yscale('linear')
+        if cbarlin: cbt.ax.set_yscale('linear')
         cbt.ax.tick_params(labelsize=16)
         cbt.set_label(labtxt, fontsize=16, rotation=270, labelpad=20)
 
