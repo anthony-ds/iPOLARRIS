@@ -46,16 +46,6 @@ echo Determining data agency and type...
 echo
 sleep 3
 
-station=$(basename $raddir)
-if [[ "$station" == "CASAG" ]]; then
-    agency='cwr'
-elif [[ "$station" == "NPOL" ]]; then
-    agency='olympex'
-else
-    agency='nexrad'
-fi
-echo $agency
-
 if [[ "$(ls $raddir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
 	data='wrf'
     mp=$(ls $raddir/* | head -n 1 | xargs basename | cut -d '_' -f2)
@@ -78,14 +68,14 @@ else
     fi
 fi
 
+station=$(basename $raddir)
 path2specs=$(realpath $raddir/../../../radar_specs/${station}_specs.txt)
-#path2specs=$(realpath $raddir/../../${station}_specs.txt)
-
 latcen=$(cat $path2specs | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 loncen=$(cat $path2specs | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 minelev=$(cat $path2specs | grep "min_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 maxelev=$(cat $path2specs | grep "max_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 band=$(cat $path2specs | grep "frequency_band =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+agency=$(cat $path2specs | grep "agency =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs | tr '[:upper:]' '[:lower:]')
 
 echo
 echo Selecting radar files for analysis in range ${stt[0]} to ${edt[${#edt[@]}-1]}...
@@ -359,9 +349,9 @@ if [ -z $simdir ]; then
 
     sed -i '' "s/^type ==.*/type == $data == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" $configdir/$configfile
     if [[ "$data" == "obs" ]]; then
-        sed -i '' "s/.*mphys ==.*/mphys == $data == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" $configdir/$configfile
+        sed -i '' "s/.*data ==.*/data == $agency == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'/g" $configdir/$configfile
     else
-        sed -i '' "s/.*mphys ==.*/mphys == $mpname == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" $configdir/$configfile
+        sed -i '' "s/.*data ==.*/data == $mpname == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'/g" $configdir/$configfile
     fi
     sed -i '' "s/.*ptype ==.*/ptype == '$ptype' == # Output figure file extenstion (i.e. png, jpg, mp4, ...)/g" $configdir/$configfile
     sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo ${stt[0]} | tr '_' '-')' == # Start time of analysis of interest/g" $configdir/$configfile
@@ -408,7 +398,7 @@ else
     cp $template $configdir/$configfile
 
     sed -i '' "s/^type ==.*/type == obs == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" $configdir/$configfile
-    sed -i '' "s/.*mphys ==.*/mphys == obs == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" $configdir/$configfile
+    sed -i '' "s/.*data ==.*/data == $agency == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'/g" $configdir/$configfile
     sed -i '' "s/.*ptype ==.*/ptype == '$ptype' == # Output figure file extenstion (i.e. png, jpg, mp4, ...)/g" $configdir/$configfile
     sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo ${stt[0]} | tr '_' '-')' == # Start time of analysis of interest/g" $configdir/$configfile
     sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo ${edt[${#edt[@]}-1]} | tr '_' '-')' == # End time of analysis of interest/g" $configdir/$configfile
@@ -439,7 +429,7 @@ else
         cp $template2 ${configfiles2[ii]}
 
         sed -i '' "s/^type ==.*/type == wrf == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" ${configfiles2[ii]}
-        sed -i '' "s/.*mphys ==.*/mphys == $(echo ${allmps[ii]}) == # Type of microphysics used in model: 'obs' OR '<scheme>' if type = 'wrf'/g" ${configfiles2[ii]}
+        sed -i '' "s/.*data ==.*/data == $(echo ${allmps[ii]}) == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'/g" ${configfiles2[ii]}
         sed -i '' "s/.*ptype ==.*/ptype == '$ptype' == # Output figure file extenstion (i.e. png, jpg, mp4, ...)/g" ${configfiles2[ii]}
         sed -i '' "s/.*sdatetime ==.*/sdatetime == '$(echo ${stt[0]} | tr '_' '-')' == # Start time of analysis of interest/g" ${configfiles2[ii]}
         sed -i '' "s/.*edatetime ==.*/edatetime == '$(echo ${edt[${#edt[@]}-1]} | tr '_' '-')' == # End time of analysis of interest/g" ${configfiles2[ii]}

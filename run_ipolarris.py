@@ -90,8 +90,8 @@ print('#################################################')
 # More comments in this section TBD!
 if sys.argv[2:]:
    
-    rdatas = {rdata.mphys: rdata}
-    configs = {rdata.mphys: config}
+    rdatas = {rdata.rsrc: rdata}
+    configs = {rdata.rsrc: config}
 
     configfiles = sys.argv[2:]
 
@@ -102,8 +102,8 @@ if sys.argv[2:]:
 
     for cf in configfiles:
         rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(cf)
-        rdatas[rdata2.mphys] = rdata2
-        configs[rdata2.mphys] = config2
+        rdatas[rdata2.rsrc] = rdata2
+        configs[rdata2.rsrc] = config2
 
     rk = list(rdatas.keys())
 
@@ -138,45 +138,49 @@ if sys.argv[2:]:
             nrows = 2
             ncols = int(np.ceil(len(rk)/2))
 
-        for i,v in enumerate(eval(config['cfad_compare_vars'])):
- 
-            fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.08, 'hspace': 0.08, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
-            if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
-                ax = np.array([ax])
-            axf = ax.flatten()
-
-            for j in range(len(rk),ncols*nrows):
-                fig.delaxes(axf[j])
-        
-            if v is None: continue 
-
+        for ii in range(len(rdatas[rk[0]].cfad_compare_vars)):
+            
+            v0 = rdatas[rk[0]].cfad_compare_vars[ii]
+            
+            if v0 is None: continue
             else:
+
+                fig, ax = plt.subplots(nrows,ncols,figsize=(14,8),gridspec_kw={'wspace': 0.08, 'hspace': 0.08, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.})
+                if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
+                    ax = np.array([ax])
+                axf = ax.flatten()
+
+                for j in range(len(rk),ncols*nrows):
+                    fig.delaxes(axf[j])
                 
-                print(v)
-               
                 for jj in range(len(rk)):
                     botpanels = np.arange(len(rk)-ncols,len(rk))
                     xlabbool = True if jj in botpanels else False
                     lspanels = [ncols*n for n in range(0,nrows)]
                     ylabbool = True if jj in lspanels else False
                     cbpanels = [ncols*n+2 for n in range(0,nrows)]
-                    cbbool = True if i in cbpanels else False
+                    cbbool = True if jj in cbpanels else False
+
+                    v = rdatas[rk[jj]].cfad_compare_vars[ii]
+
+                    if jj == 0: print(v)
+     
                     if not zmax == '':
                         if v.startswith('HID'):
                             rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
                         else:
-                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]][v],ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(v,ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[v],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
                     else:
                         if v.startswith('HID'):
                             rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
                         else:
-                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(configs[rk[jj]],ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[configs[rk[jj]][v]],z_resolution=config['z_resolution'],levels=1)
-                    
-                    axf[jj].text(0.01,0.99,rdatas[rk[jj]].mphys.upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
-   
+                            cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(v,ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[v],z_resolution=config['z_resolution'],levels=1)
+                   
+                    axf[jj].text(0.01,0.99,'OBS' if jj == 0 else rk[jj].upper(),horizontalalignment='left',verticalalignment='top',size=16,color='k',zorder=10,weight='bold',transform=axf[jj].transAxes,bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+       
                 axf[0].text(0,1, rdatas[rk[0]].exper+' '+rdatas[rk[0]].band+'-band', horizontalalignment='left', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[0].transAxes)
                 axf[ncols-1].text(1,1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=18, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes)
-
+            
                 lur,bur,wur,hur = axf[len(rk)-ncols].get_position().bounds
                 lur2,bur2,wur2,hur2 = axf[ncols-1].get_position().bounds
                 cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
@@ -193,68 +197,68 @@ if sys.argv[2:]:
                     if v.startswith('HID'):
                         plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,t1=st,t2=en),dpi=400,bbox_inches='tight')
                     else:
-                        plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[configs[rk[0]][v]],t1=st,t2=en),dpi=400,bbox_inches='tight')        
+                        plt.savefig('{d}{p}_{vv}_CFAD_{t1}-{t2}.png'.format(d=outdir,p=rdatas[rk[0]].exper,vv=rdatas[rk[0]].names_uc[v0],t1=st,t2=en),dpi=400,bbox_inches='tight')        
                 else: 
                     if v.startswith('HID'):
                         plt.savefig('{d}{p}_HID_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,t=config['ptype'],t1=st,t2=en),dpi=400,bbox_inches='tight')
                     else:
-                        plt.savefig('{d}{p}_{v}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,v=rdatas[rk[0]].names_uc[configs[rk[0]][v]],t1=st,t2=en),dpi=400,bbox_inches='tight',t=config['ptype'])
+                        plt.savefig('{d}{p}_{vv}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,vv=rdatas[rk[0]].names_uc[v0],t1=st,t2=en),dpi=400,bbox_inches='tight',t=config['ptype'])
                 
                 plt.close()
-                '''  
-                else:
+            '''  
+            else:
 
-                    if not rdatas[rk[0]].cfbins[config[v]] == '' and config[v] in rdatas[rk[0]].data.variables.keys():
-                        
-                        print(v)
+                if not rdatas[rk[0]].cfbins[config[v]] == '' and config[v] in rdatas[rk[0]].data.variables.keys():
+                    
+                    print(v)
 
-                        fig, ax = plt.subplots(1,3,figsize=(16,8),gridspec_kw={'wspace': 0.1, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.}) 
-                        if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
-                            ax = np.array([ax])
-                        axf = ax.flatten()
+                    fig, ax = plt.subplots(1,3,figsize=(16,8),gridspec_kw={'wspace': 0.1, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.}) 
+                    if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
+                        ax = np.array([ax])
+                    axf = ax.flatten()
 
-                        if not zmax == '':
-                            ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
-                            scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
-                            dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax,diff=1)
-                        else:
-                            ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1)
-                            scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1)
-                            dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,diff=1)
-
-                        lur,bur,wur,hur = axf[0].get_position().bounds
-                        lur2,bur2,wur2,hur2 = axf[1].get_position().bounds
-                        cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
-                        cbar_ax = fig.add_axes(cbar_ax_dims)
-                        cbt = plt.colorbar(pc,cax=cbar_ax,orientation='horizontal')
-                        cbt.ax.tick_params(labelsize=16)
-                        cbt.set_ticks(rdatas[rk[0]].cfad_levs)
-                        cbt.set_label('Frequency (%)', fontsize=16, labelpad=10)
-
-                        lur3,bur3,wur3,hur3 = axf[2].get_position().bounds
-                        cbar_ax_dims3 = [lur3,bur3-0.13,wur3,0.03]
-                        cbar_ax3 = fig.add_axes(cbar_ax_dims3)
-                        cbt3 = plt.colorbar(pc3,cax=cbar_ax3,orientation='horizontal')
-                        cbt3.ax.tick_params(labelsize=16)
-                        cbt.set_ticks(rdatas[rk[0]].cfad_levs)
-                        cbt3.set_label('Frequency Difference (%)', fontsize=16, labelpad=10)
-
-                        axf[0].text(0,1,'{e} {r}'.format(e=rdatas[rk[0]].exper,r=rdatas[rk[0]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[0].transAxes)
-                        axf[1].text(0,1,'{e} {r}'.format(e=rdatas[rk[1]].exper,r=rdatas[rk[1]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[1].transAxes)
-                        axf[2].text(0,1,'({e1} - {e2})'.format(e1=rdatas[rk[0]].exper,e2=rdatas[rk[0]].exper),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[2].transAxes)
-                        axf[2].text(0.99,0.99, dtlab, horizontalalignment='right', verticalalignment='top', size=18, color='k', zorder=10, weight='bold', transform=axf[2].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0)) # (a) Top-left
-                      
-       
-                        plt.close()
-
+                    if not zmax == '':
+                        ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                        scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
+                        dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax,diff=1)
                     else:
-                        
-                        continue
-                '''
-                print('\nDone! Saved to '+outdir)
-                print('Moving on.\n')
+                        ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1)
+                        scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1)
+                        dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,diff=1)
+
+                    lur,bur,wur,hur = axf[0].get_position().bounds
+                    lur2,bur2,wur2,hur2 = axf[1].get_position().bounds
+                    cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
+                    cbar_ax = fig.add_axes(cbar_ax_dims)
+                    cbt = plt.colorbar(pc,cax=cbar_ax,orientation='horizontal')
+                    cbt.ax.tick_params(labelsize=16)
+                    cbt.set_ticks(rdatas[rk[0]].cfad_levs)
+                    cbt.set_label('Frequency (%)', fontsize=16, labelpad=10)
+
+                    lur3,bur3,wur3,hur3 = axf[2].get_position().bounds
+                    cbar_ax_dims3 = [lur3,bur3-0.13,wur3,0.03]
+                    cbar_ax3 = fig.add_axes(cbar_ax_dims3)
+                    cbt3 = plt.colorbar(pc3,cax=cbar_ax3,orientation='horizontal')
+                    cbt3.ax.tick_params(labelsize=16)
+                    cbt.set_ticks(rdatas[rk[0]].cfad_levs)
+                    cbt3.set_label('Frequency Difference (%)', fontsize=16, labelpad=10)
+
+                    axf[0].text(0,1,'{e} {r}'.format(e=rdatas[rk[0]].exper,r=rdatas[rk[0]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[0].transAxes)
+                    axf[1].text(0,1,'{e} {r}'.format(e=rdatas[rk[1]].exper,r=rdatas[rk[1]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[1].transAxes)
+                    axf[2].text(0,1,'({e1} - {e2})'.format(e1=rdatas[rk[0]].exper,e2=rdatas[rk[0]].exper),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[2].transAxes)
+                    axf[2].text(0.99,0.99, dtlab, horizontalalignment='right', verticalalignment='top', size=18, color='k', zorder=10, weight='bold', transform=axf[2].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0)) # (a) Top-left
+                  
+   
+                    plt.close()
+
+                else:
+                    
+                    continue
+            '''
+            print('\nDone! Saved to '+outdir)
+            print('Moving on.\n')
   
-    print('\niPOLARRIS RUN COMPLETE FOR '+config2['mphys'].upper()+' '+config['sdatetime']+' - '+config['edatetime']+'\n')
+    print('\niPOLARRIS RUN COMPLETE FOR OBS v. WRF '+config['sdatetime']+' - '+config['edatetime']+'\n')
 
 ################################################################################
 ################## Now you can just start plotting! ############################

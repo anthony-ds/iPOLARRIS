@@ -210,7 +210,8 @@ def polarris_driver(configfile):
                 key, val, comment = line.split('==')
                 vval = val.replace(" ","")
                 numck = hasNumbers(vval)
-                if key.replace(" ", "") == 'exper' or key.replace(" ", "") == 'dz_name' or key.replace(" ", "") == 'drop_vars' or key.replace(" ", "") == 'dr_name' or key.replace(" ", "") == 'kd_name' or key.replace(" ", "") == 'rh_name' or key.replace(" ", "") == 'vr_name' or key.replace(" ", "") == 'mphys' or key.replace(" ", "") == 'xname' or key.replace(" ", "") == 'yname' or key.replace(" ", "") == 'zname' or key.replace(" ", "") == 'latname' or key.replace(" ", "") == 'lonname':
+                #if key.replace(" ", "") == 'exper' or key.replace(" ", "") == 'dz_name' or key.replace(" ", "") == 'drop_vars' or key.replace(" ", "") == 'dr_name' or key.replace(" ", "") == 'kd_name' or key.replace(" ", "") == 'rh_name' or key.replace(" ", "") == 'vr_name' or key.replace(" ", "") == 'data' or key.replace(" ", "") == 'xname' or key.replace(" ", "") == 'yname' or key.replace(" ", "") == 'zname' or key.replace(" ", "") == 'latname' or key.replace(" ", "") == 'lonname':
+                if key.replace(" ", "") == 'exper' or key.replace(" ", "") == 'drop_vars' or key.replace(" ", "") == 'data':
                     numck = False
                 if key.replace(" ", "") == 'exper': # or key.replace(" ", "") == 'ptype':
                     vval = vval.strip("''")
@@ -236,7 +237,8 @@ def polarris_driver(configfile):
     # =====
 
     print('Station/experiment: '+config['exper'])
-    print('Input: '+config['mphys'].upper())
+    if config['type'].startswith('wrf'): print('MP Scheme: '+config['data'].upper())
+    else: print('Data Source: '+config['data'].upper())
     print('Start: '+config['sdatetime'])
     print('End: '+config['edatetime'])
     time.sleep(3)
@@ -258,7 +260,7 @@ def polarris_driver(configfile):
         print("\nOops! There is no radar data for the dates given in your config file. Exiting...\n")
         sys.exit(1)
 
-    if config['exper'] == 'MC3E' and config['mphys'] == 'obs':
+    if config['exper'] == 'MC3E' and config['data'] == 'obs':
         print("special handling for ",config['exper'])
 
         file = open(config['rfiles'], "r")
@@ -284,24 +286,24 @@ def polarris_driver(configfile):
 
     if config['type'].startswith('wrf'):
         
-        refvals = deepcopy(rvar[config['dz_name']].values)
+        refvals = deepcopy(rvar['zhh01'].values)
         refvals = np.where(refvals < float(config['refthresh']), np.nan, refvals)
         
         elevs = deepcopy(rvar['elev01'].values) 
         elevs = np.where(elevs < float(config['mincosthresh']), np.nan, elevs)
         refvals = np.where(elevs > float(config['maxcosthresh']), np.nan, refvals) 
 
-        newref = xr.DataArray(refvals, dims=['d','z','y','x'], name=config['dz_name'])
-        rvar[config['dz_name']] = newref
+        newref = xr.DataArray(refvals, dims=['d','z','y','x'], name='zhh01')
+        rvar['zhh01'] = newref
         
-        parsers = ['dr_name','kd_name','rh_name','vr_name']
+        parsers = ['zdr01','kdp01','rhohv01','vrad01']
         for v in parsers:
-            newvals = deepcopy(rvar[config[v]].values)
+            newvals = deepcopy(rvar[v].values)
             newvals = np.where(newvals == -999.0,np.nan,newvals)
             newvals = np.where(newvals == 0.0,np.nan,newvals)
             newvals = np.where(np.isnan(refvals),np.nan,newvals)
-            newvar = xr.DataArray(newvals, dims=['d','z','y','x'], name=config[v])
-            rvar[config[v]] = newvar
+            newvar = xr.DataArray(newvals, dims=['d','z','y','x'], name=v)
+            rvar[v] = newvar
    
     # =====
     # (3) Get datetime objects from radar file names.
@@ -315,11 +317,10 @@ def polarris_driver(configfile):
         date=datetime.datetime.strptime(radcdate,dformat)
         tm.append(date)
 
-    rvar = rvar.rename({config['xname']:'x'})
-    rvar = rvar.rename({config['yname']:'y'})
-    
-    if config['type'].startswith('obs'):
-        rvar = rvar.rename({config['zname']:'z'})
+    if config['data'].startswith('nexrad'):
+        rvar = rvar.rename({'x0':'x'})
+        rvar = rvar.rename({'y0':'y'}) 
+        rvar = rvar.rename({'z0':'z'})
     elif config['type'].startswith('wrf'):
         currx = deepcopy(rvar['x'].values)
         newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
@@ -474,11 +475,14 @@ def polarris_driver(configfile):
                     tvar = xr.open_mfdataset(list(wmatch.values()),concat_dim='d')
                 except ValueError as ve:
                     tvar = xr.open_mfdataset(list(wmatch.values()),combine='nested',concat_dim='d')
-                rvar[config['t_name']] = tvar['t_air']-273.15
+                rvar['T'] = tvar['t_air']-273.15
         else:
-            rvar[config['t_name']].values = deepcopy(rvar[config['t_name']])-273.15
+            rvar['t_air'].values = deepcopy(rvar['t_air'])-273.15
 
-    rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],mphys=config['mphys'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
+    if config['type'].startswith('obs') or config['type'].startswith('wrf'):
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,u=Uname,v=Vname,w=Wname,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
+    else:
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
 
     if config['snd_on']:
         print('In your config file, snd_on is set to True.')
@@ -496,7 +500,7 @@ def polarris_driver(configfile):
         rdata.mask_model()
    
     hid_on,qr_on,rr_on = False if config['hid_on'] is '' else True, False if config['qr_on'] is '' else True, False if config['rr_on'] is '' else True
-    rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir'],classify=config['hid_cols']) # HCA, RR, QR
+    rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir'],mode=config['type'],classify=config['hid_cols']) # HCA, RR, QR
     
     if not config['cs_z'] == '':
         rdata.calc_cs_shy(cs_z=config['cs_z'])

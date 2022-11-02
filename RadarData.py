@@ -52,9 +52,9 @@ np.set_printoptions(threshold=sys.maxsize)
 
 class RadarData(RadarConfig.RadarConfig): 
 
-    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', u='U', v='V', w='Wvar', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',lat_r=None,lon_r=None,mphys=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,hid_cats='summer'): 
+    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', u='U', v='V', w='Wvar', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',rtype='obs',rsrc='nexrad',lat_r=None,lon_r=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,dd_on=False,hid_on=True,hid_cats='summer'): 
 
-        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, u=u, v=v, w=w,rr=rr,vr=vr,mphys=mphys,exper=exper,lat=lat,lon=lon,tm = times,color_blind=color_blind,hid_cats=hid_cats)
+        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, u=u, v=v, w=w,rr=rr,vr=vr,exper=exper,rtype=rtype,rsrc=rsrc,lat=lat,lon=lon,tm = times,color_blind=color_blind,dd_on=dd_on,hid_on=hid_on,hid_cats=hid_cats)
 
         # ********** initialize the data *********************
 #        self.data = {} 
@@ -66,6 +66,8 @@ class RadarData(RadarConfig.RadarConfig):
 #        if self.radar_file is not None:
 #            self.time_parse = time_parse
 #            self.dformat = dformat
+        self.rtype = rtype
+        self.rsrc = rsrc
         self.conv_types = conv_types
         self.strat_types = strat_types
         self.mixed_types = mixed_types
@@ -107,7 +109,7 @@ class RadarData(RadarConfig.RadarConfig):
         print ('calculating deltas')
         self.calc_deltas()
         print ('calculating rain area')
-        self.radar_area()
+        self.radar_area(rtype=rtype)
         self.rr_name = rr
         if self.rr_name == None:
             self.rr_name = 'RR'
@@ -150,7 +152,7 @@ class RadarData(RadarConfig.RadarConfig):
 #             except:
 #                 self.radar_lat = getattr(self.nc,'Longitude_deg')
         try:
-            self.T = self.data[temp]
+            self.T = self.data[self.temp_name]
         except:
             print ('')
 #        self.set_masks()
@@ -340,10 +342,11 @@ class RadarData(RadarConfig.RadarConfig):
         for k in self.data.keys():
             self.data[k] = np.ma.masked_where(self.data[k] < -998.0,self.data[k])
 
-    def radar_area(self):
+    def radar_area(self,rtype='obs'):
         #Define the radar coverage area. We can do this from radial velocity in the model
-        if self.mphys == 'obs':
+        if rtype == 'obs':
             self.radar_area = len(self.data[self.x_name].values)*len(self.data[self.y_name].values)*self.dx*self.dy  
+            print('radar_area',self.radar_area)
         else:
             vrcomp = self.data[self.vr_name].sel(d=0).max(axis=0).values
             whmask = np.where(vrcomp > -50)
@@ -365,7 +368,7 @@ class RadarData(RadarConfig.RadarConfig):
             dummy[whmask] = 1
             radar_area = np.count_nonzero(dummy)*dy*dx
             self.radar_area = radar_area
-            print('radar _area',radar_area)
+            print('radar_area',radar_area)
             
             dummy = 0.0
             vrcomp = 0.0
@@ -595,7 +598,7 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
    ############ Here is calling CSU radartools for HID, RR, etc... ############################
 #############################################################################################################
-    def calc_pol_analysis(self,tm,hid_on,qr_on,rr_on,rr_dir=None,classify='summer',**kwargs):
+    def calc_pol_analysis(self,tm,hid_on,qr_on,rr_on,rr_dir=None,mode='obs',classify='summer',**kwargs):
         
         import time
         
@@ -605,7 +608,7 @@ class RadarData(RadarConfig.RadarConfig):
             self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores,classify='summer')
             print('HID runtime = '+str(time.time()-start))
         
-        if self.mphys == 'obs':
+        if mode == 'obs':
             
             if qr_on:
 

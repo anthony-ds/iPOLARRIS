@@ -10,40 +10,76 @@ import pyart
 
 class RadarConfig(object):
    
-    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',
-            temp='T', x='x', y='y', z='z', u='U', v='V',rr='RR', w='Wvar',vr='VR',mphys='None',exper = 'Case',
-            band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,
-            color_blind = False, hid_cats = 'summer'):
+    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='U', v='V',rr='RR', w='Wvar',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,hid_on=True,hid_cats = 'summer'):
+        
         # ******** first the polarimetric stuff *************
-        self.dz_name = dz
-        self.zdr_name = zdr
-        self.kdp_name = kdp
-        self.ldr_name = ldr
-        self.rho_name = rho
+       
+        if rtype.startswith('obs'):
+
+            if rsrc.startswith('nexrad'):
+        
+                self.dz_name = 'REF' # Name of the reflectivity field
+                self.zdr_name = 'ZDR' # Name of the differential reflectivity field
+                self.kdp_name = 'KDP' # Name of the Kdp field
+                self.rho_name = 'RHO' # Name of the RhoHV field
+                self.vr_name = 'VEL' # Name of radial velocity field
+                self.temp_name = 'T' # Name of the temperature field
+                self.lon_name = 'lon0' # File naming of the longitude variable 
+                self.lat_name = 'lat0' # File naming of the latitude variable
+            
+            if rsrc.startswith('cwr'):
+        
+                self.dz_name = 'DBZH' # Name of the reflectivity field
+                self.zdr_name = 'ZDR' # Name of the differential reflectivity field
+                self.kdp_name = 'KDP' # Name of the Kdp field
+                self.rho_name = 'RHOHV' # Name of the RhoHV field
+                self.vr_name = 'VRADH' # Name of radial velocity field
+                self.temp_name = 'T' # Name of the temperature field
+                self.lon_name = 'lon' # File naming of the longitude variable
+                self.lat_name = 'lat' # File naming of the latitude variable
+
+        elif rtype.startswith('wrf'):
+        
+            self.dz_name = 'zhh01' # Name of the reflectivity field
+            self.zdr_name = 'zdr01' # Name of the differential reflectivity field
+            self.kdp_name = 'kdp01' # Name of the Kdp field
+            self.rho_name = 'rhohv01' # Name of the RhoHV field
+            self.vr_name = 'vrad01' # Name of radial velocity field
+            self.temp_name = 't_air' # Name of the temperature field
+            self.lon_name = 'longitude' # File naming of the longitude variable 
+            self.lat_name = 'latitude' # File naming of the latitude variable
+        
+        else:    
+        
+            self.dz_name = dz
+            self.zdr_name = zdr
+            self.kdp_name = kdp
+            self.rho_name = rho
+            self.vr_name = vr
+            self.temp_name = temp
+            self.lat_name=lat
+            self.lon_name=lon
+        
+        print('in config, lat name is ',self.lat_name)
+ 
+        self.u_name = 'u' # Name of the zonal wind field
+        self.v_name = 'v' # Name of the meridional wind field
+        self.w_name = 'w' # Name of the vertical wind field
+        self.x_name = 'x' # File naming of the zonal directional variable
+        self.y_name = 'y' # File naming of the meridional directional variables
+        self.z_name = 'z' # File naming of the vertical level field
+   
+        self.conv_name = conv
+        self.cs_name = 'CSS'
         self.rr_name = rr
+        self.ldr_name = 'LDR' # Name of the linear depolarization field
+        self.hid_name = 'HID'
         if self.rr_name == None:
             self.rr_name = 'RR'
-        self.temp_name = temp
-        self.hid_name = hid
-        self.vr_name = vr
-        self.conv_name=conv
-        self.cs_name = 'CSS'
+        self.hid_on = hid_on
+        self.dd_on = dd_on
 
-        # ********** next the cartesian coordinates **********
-        self.x_name = x
-        self.y_name = y
-        self.z_name = z
-        # ********** dual doppler names **********************
-        self.u_name = u
-        self.v_name = v
-        self.w_name = w
-
-        self.lat_name=lat
-        self.lon_name=lon
-        print('in config, lat name is ',self.lat_name)
-        
         ########set up some experiment parameters ############
-        self.mphys=mphys
         self.exper=exper
         self.radar_lat = lat_r
         self.radar_lon = lon_r
@@ -82,20 +118,25 @@ class RadarConfig(object):
         self.set_hid_colorbar()
         self.set_cs_colorbar()
 
+        self.rhi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.hid_name if self.hid_on else None,self.w_name if self.dd_on else None] #Names of vars for RHI plots
+        self.cfad_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
+        self.cfad_compare_vars = [self.hid_name if self.hid_on else None,self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None] #Names of vars for RHI plots
+        self.rhi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.vr_name,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
+
         # Now just set some defaults
-        self.lims = {dz: [0,80], zdr: [-1, 3], kdp: [-0.5, 3], ldr: [-35, -20], rho: [0.95, 1.00], hid: [0,len(self.species)+1],u: [-20,80],w:[-2,2],vr:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30]}
-        self.cfbins = {dz: np.arange(-10,60.1,1), zdr: np.arange(-2,6.01,0.05), kdp: np.arange(-2,2.01,0.05), rho: np.arange(0.5,1.01,0.02), hid: '' , u: np.arange(-20,81,2), w: np.arange(-6,6.1,0.5), self.temp_name: np.arange(20,-60.1,-5)} 
-        self.delta = {dz: 10, zdr: 1, kdp: 1, ldr: 5, rho: 0.005, hid: 1,w:5,vr:5,self.cs_name:1,self.rr_name:10,self.temp_name:5}
-        self.units = {dz: '(dBZ)', zdr: '(dB)', kdp: '($^{\circ}$ km$^{-1}$)', ldr: '(dB)', rho: '', hid: '', u: '(m s$^{-1}$)', w:'(m s$^{-1}$)',vr:'(m s$^{-1}$)',self.cs_name:'',self.rr_name:'(mm hr$^{-1}$)',self.temp_name:'C'}
-        self.names = {dz: 'Z', zdr: 'Z$_{DR}$', kdp: 'K$_{dp}$', ldr: 'LDR', rho: r'$\rho_{hv}$', hid: '',w:'',vr:'V$_r$',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
-        self.names_uc = {dz: 'REF', zdr: 'ZDR', kdp: 'KDP', ldr: 'LDR', rho: 'RHO', hid: 'HID', u:'U', w:'W',vr:'VRAD',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
-        self.longnames = {dz: 'Reflectivity', zdr: 'Differential Reflectivity', kdp: 'Specific Differential Phase',\
-                ldr: 'Linear Depolarization Ratio', rho: 'Correlation Coefficient', hid: 'Hydrometeor Identification',w:'Vertical Velocity',vr:'Radial Velocity',\
+        self.lims = {self.dz_name: [0,80], self.zdr_name: [-1, 3], self.kdp_name: [-0.5, 3], self.ldr_name: [-35, -20], self.rho_name: [0.95, 1.00], self.hid_name: [0,len(self.species)+1],self.u_name: [-20,80],self.w_name:[-2,2],self.vr_name:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30]}
+        self.cfbins = {self.dz_name: np.arange(-10,60.1,1), self.zdr_name: np.arange(-2,6.01,0.05), self.kdp_name: np.arange(-2,2.01,0.05), self.rho_name: np.arange(0.5,1.01,0.02), self.hid_name: '' , self.u_name: np.arange(-20,81,2), self.w_name: np.arange(-6,6.1,0.5), self.temp_name: np.arange(20,-60.1,-5)} 
+        self.delta = {self.dz_name: 10, self.zdr_name: 1, self.kdp_name: 1, self.ldr_name: 5, self.rho_name: 0.005, self.hid_name: 1,self.w_name:5,self.vr_name:5,self.cs_name:1,self.rr_name:10,self.temp_name:5}
+        self.units = {self.dz_name: '(dBZ)', self.zdr_name: '(dB)', self.kdp_name: '($^{\circ}$ km$^{-1}$)', self.ldr_name: '(dB)', self.rho_name: '', self.hid_name: '', self.u_name: '(m s$^{-1}$)', self.w_name:'(m s$^{-1}$)',self.vr_name:'(m s$^{-1}$)',self.cs_name:'',self.rr_name:'(mm hr$^{-1}$)',self.temp_name:'C'}
+        self.names = {self.dz_name: 'Z', self.zdr_name: 'Z$_{DR}$', self.kdp_name: 'K$_{dp}$', self.ldr_name: 'LDR', self.rho_name: r'$\rho_{hv}$', self.hid_name: '',self.w_name:'',self.vr_name:'V$_r$',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
+        self.names_uc = {self.dz_name: 'REF', self.zdr_name: 'ZDR', self.kdp_name: 'KDP', self.ldr_name: 'LDR', self.rho_name: 'RHO', self.hid_name: 'HID', self.u_name:'U', self.w_name:'W',self.vr_name:'VRAD',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
+        self.longnames = {self.dz_name: 'Reflectivity', self.zdr_name: 'Differential Reflectivity', self.kdp_name: 'Specific Differential Phase',\
+                self.ldr_name: 'Linear Depolarization Ratio', self.rho_name: 'Correlation Coefficient', self.hid_name: 'Hydrometeor Identification',self.w_name:'Vertical Velocity',self.vr_name:'Radial Velocity',\
                 self.cs_name: 'Convective/Stratiform',self.rr_name:'Rain Rate',self.temp_name:'Temperature'}
-        #self.cmaps = {dz: self.temp_cmap, zdr: plt.cm.Spectral_r, kdp: plt.cm.gist_heat_r, ldr: plt.cm.gist_rainbow_r, rho: plt.cm.jet, hid: self.hid_cmap,w:plt.cm.seismic,vr:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.cm.Spectral_r,self.temp_name:'RdYlBu_r'}
-        self.cmaps = {dz: self.temp_cmap, zdr: plt.cm.Spectral_r, kdp: plt.cm.gist_heat_r, ldr: plt.cm.gist_rainbow_r, rho: plt.cm.jet, hid: self.hid_cmap,u: plt.cm.seismic, w:plt.cm.seismic,vr:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.get_cmap('pyart_HomeyerRainbow'),self.temp_name:'RdYlBu_r'}
-        self.ticklabels = {dz: np.arange(0, 90, 10), zdr: np.arange(-1, 4, 1), kdp: np.arange(-0.5, 4.5, 1), 
-                ldr: np.arange(-35, -15, 5), rho: np.arange(0.95, 1.01, 0.005), hid: np.append('', self.species),u: np.arange(-20,81,2), w:np.arange(-2,2.1,0.1),vr:np.arange(-25,30.0,5.0),
+        #self.cmaps = {self.dz_name: self.temp_cmap, self.zdr_name: plt.cm.Spectral_r, self.kdp_name: plt.cm.gist_heat_r, self.ldr_name: plt.cm.gist_rainbow_r, self.rho_name: plt.cm.jet, self.hid_name: self.hid_cmap,self.w_name:plt.cm.seismic,self.vr_name:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.cm.Spectral_r,self.temp_name:'RdYlBu_r'}
+        self.cmaps = {self.dz_name: self.temp_cmap, self.zdr_name: plt.cm.Spectral_r, self.kdp_name: plt.cm.gist_heat_r, self.ldr_name: plt.cm.gist_rainbow_r, self.rho_name: plt.cm.jet, self.hid_name: self.hid_cmap,self.u_name: plt.cm.seismic, self.w_name:plt.cm.seismic,self.vr_name:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.get_cmap('pyart_HomeyerRainbow'),self.temp_name:'RdYlBu_r'}
+        self.ticklabels = {self.dz_name: np.arange(0, 90, 10), self.zdr_name: np.arange(-1, 4, 1), self.kdp_name: np.arange(-0.5, 4.5, 1), 
+                self.ldr_name: np.arange(-35, -15, 5), self.rho_name: np.arange(0.95, 1.01, 0.005), self.hid_name: np.append('', self.species),self.u_name: np.arange(-20,81,2), self.w_name:np.arange(-2,2.1,0.1),self.vr_name:np.arange(-25,30.0,5.0),
                 self.cs_name: self.cs_labels,self.rr_name:[0.1,1,10,30,50,70,100,130,150],self.temp_name:np.arange(-30,35,5)}
 #############################################################################################################
 
