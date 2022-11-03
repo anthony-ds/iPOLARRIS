@@ -16,4 +16,5 @@ samples/*
 outputfig/*
 nexrad_obs_config.txt
 nexrad_wrf_config.txt
+ipol_config.txt
 *.log
