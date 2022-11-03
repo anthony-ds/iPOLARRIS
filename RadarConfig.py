@@ -10,7 +10,7 @@ import pyart
 
 class RadarConfig(object):
    
-    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='U', v='V',rr='RR', w='Wvar',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,hid_on=True,hid_cats = 'summer'):
+    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='u', v='v',rr='RR', w='w',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,hid_on=True,hid_cats = 'summer'):
         
         # ******** first the polarimetric stuff *************
        
@@ -105,7 +105,12 @@ class RadarConfig(object):
         #self.hid_colors = ['White','LightBlue','MediumBlue','Darkorange','LightPink','Cyan','DarkGray',\
         #    'Lime','Yellow','Red','Fuchsia']
             self.hid_colors = ['LightBlue','MediumBlue','Darkorange','Pink','Cyan','DarkGray','Lime','Yellow','Red','Fuchsia'] 
- 
+
+        self.hidwater = [1,2,10] # Group drizzle, rain and big drops
+        self.hidgraup = [7,8] # Group low and high density graupel
+        self.hidhail = [9] # Hail
+        self.hidsnow = [3,4,5,6] # Group ice crystals, snow, wet snow and VI
+
         self.pol_vars = np.array([self.dz_name, self.zdr_name, self.kdp_name, self.ldr_name, self.rho_name, self.hid_name])
 
         self.cs_colors = ['#FFFFFF', 'DodgerBlue', 'Red', 'Khaki']
@@ -121,7 +126,7 @@ class RadarConfig(object):
         self.rhi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.hid_name if self.hid_on else None,self.w_name if self.dd_on else None] #Names of vars for RHI plots
         self.cfad_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
         self.cfad_compare_vars = [self.hid_name if self.hid_on else None,self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None] #Names of vars for RHI plots
-        self.rhi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.vr_name,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
+        self.cappi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.vr_name,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
 
         # Now just set some defaults
         self.lims = {self.dz_name: [0,80], self.zdr_name: [-1, 3], self.kdp_name: [-0.5, 3], self.ldr_name: [-35, -20], self.rho_name: [0.95, 1.00], self.hid_name: [0,len(self.species)+1],self.u_name: [-20,80],self.w_name:[-2,2],self.vr_name:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30]}

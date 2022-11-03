@@ -24,6 +24,7 @@ import RadarData
 import RadarConfig
 import plot_driver
 from skewPy import SkewT
+import re
 
 def fix_my_data(ds):
     return(ds.drop(['VTZCS','CVECS']))
@@ -82,48 +83,52 @@ def match_snd(rdate,sdates):
 
 
 def find_snd_match(config):
+    
+    sdatetime = ''.join(re.findall(r'\d+', config['sdatetime']))
+    sdatetime_format = '%Y%m%d%H%M'
+    edatetime = ''.join(re.findall(r'\d+', config['edatetime']))
+    edatetime_format = '%Y%m%d%H%M'
+    sdt = datetime.datetime.strptime(sdatetime,sdatetime_format)
+    edt = datetime.datetime.strptime(edatetime,edatetime_format)
+
     rdum =[]
     with open(config['rfiles']) as f: 
-        #dum.append(foo(f.readline()))
-        #dum.append(foo(f.readline()))
-
         for line in f:
             dat = (line)
             rdum.append(foo(dat))
-    #print('sfiles:',config['sfiles'])
-    #rdum = glob.glob(config['rfiles']+'*')
-    #slist = sorted(glob.glob('{p}*{s}_*.txt'.format(p=config['sfiles'],s=(config['sstat']))))
+    
     with open(config['sfiles']) as f:
         slist = f.read().splitlines()
-    #slist = glob.glob(config['sfiles']+'*')
+    
     sdates=[]
     for v,sname in enumerate(slist):
-
         base = os.path.basename(sname)
-#            print base
-        radcdate=str(base[config['sdstart']:config['sdend']])
-        #print('radcdate',radcdate)
-        dates=datetime.datetime.strptime('{r}'.format(r=radcdate),config['sdate_format'])
+        try: 
+            snddate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',base).group()
+            sformat = '%Y%m%d_%H%M%S'
+        except AttributeError: 
+            snddate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+            sformat = '%Y-%m-%d_%H:%M:%S'
+        except AttributeError: 
+            snddate = re.search(r'\d{4}\d{2}\d{2}\d{2}',base).group()
+            sformat = '%Y%m%d%H'
+        dates = datetime.datetime.strptime('{r}'.format(r=snddate),sformat)
         sdates.append(dates)
 
     msfiles = {}
 
     for v,cname in enumerate(rdum):
-#            print cname
         base = os.path.basename(cname)
-#        print('base',base)
-        radcdate=str(base[config['rdstart']:config['rdend']])
-        #dates=datetime.datetime.strptime(radcdate,config['rdate_format'])
-        dates = datetime.datetime.strptime('{r}'.format(r=radcdate),config['rdate_format'])
-        sdt = datetime.datetime.strptime(config['sdatetime'],config['sdatetime_format'])
-        edt = datetime.datetime.strptime(config['edatetime'],config['edatetime_format'])
-        #if (dates >= config['etime']) and (dates <= config['stime']):
+        try: 
+            radcdate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',base).group()
+            rformat = '%Y%m%d_%H%M%S'
+        except AttributeError: 
+            radcdate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+            rformat = '%Y-%m-%d_%H:%M:%S'
+        dates = datetime.datetime.strptime('{r}'.format(r=radcdate),rformat)
         if (dates <= edt) and (dates >= sdt):
-            #print cname
-            #now find a sounding match
             mv = match_snd(dates,sdates)
             if mv != 'no':
-                #print ('sounding match',mv[0][0])
                 msfiles[cname] = np.array(slist)[mv[0][0]]
             else:
                 return None
@@ -131,6 +136,14 @@ def find_snd_match(config):
     return msfiles
 
 def find_wrfpol_match(config):
+
+    sdatetime = ''.join(re.findall(r'\d+', config['sdatetime']))
+    sdatetime_format = '%Y%m%d%H%M'
+    edatetime = ''.join(re.findall(r'\d+', config['edatetime']))
+    edatetime_format = '%Y%m%d%H%M'
+    sdt = datetime.datetime.strptime(sdatetime,sdatetime_format)
+    edt = datetime.datetime.strptime(edatetime,edatetime_format)
+
     rdum =[]
     with open(config['rfiles']) as f: 
         for line in f:
@@ -144,18 +157,22 @@ def find_wrfpol_match(config):
     for v,sname in enumerate(slist):
 
         base = os.path.basename(sname)
-        radcdate=str(base[config['wdstart']:config['wdend']])
-        dates=datetime.datetime.strptime('{r}'.format(r=radcdate),config['wdate_format'])
+        wcdate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+        wformat = '%Y-%m-%d_%H:%M:%S'
+        dates=datetime.datetime.strptime('{r}'.format(r=wcdate),wformat)
         wdates.append(dates)
 
     msfiles = {}
 
     for v,cname in enumerate(rdum):
         base = os.path.basename(cname)
-        radcdate=str(base[config['rdstart']:config['rdend']])
-        dates = datetime.datetime.strptime('{r}'.format(r=radcdate),config['rdate_format'])
-        sdt = datetime.datetime.strptime(config['sdatetime'],config['sdatetime_format'])
-        edt = datetime.datetime.strptime(config['edatetime'],config['edatetime_format'])
+        try: 
+            radcdate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',base).group()
+            rformat = '%Y%m%d_%H%M%S'
+        except AttributeError: 
+            radcdate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+            rformat = '%Y-%m-%d_%H:%M:%S'
+        dates = datetime.datetime.strptime('{r}'.format(r=radcdate),rformat)
         if (dates <= edt) and (dates >= sdt):
             mv = match_snd(dates,wdates)
             if mv != 'no':
@@ -164,7 +181,6 @@ def find_wrfpol_match(config):
                 return None
     
     return msfiles
-
 
 def foo(s1):
     return '{}'.format(s1.rstrip())
@@ -244,16 +260,18 @@ def polarris_driver(configfile):
     time.sleep(3)
 
     drop_vars = config['drop_vars']
-    sdatetime = int(config['sdatetime'][0:8]+config['sdatetime'][9:13])
-    edatetime = int(config['edatetime'][0:8]+config['edatetime'][9:13])
+    sdatetime = ''.join(re.findall(r'\d+', config['sdatetime']))
+    edatetime = ''.join(re.findall(r'\d+', config['edatetime']))
     rfiles = []
     with open(config['rfiles'], 'r') as f:
         allrfiles = f.read().splitlines()
         for rfile in allrfiles:
             fullname = os.path.basename(rfile)
-            filedatestr = fullname[config['rdstart']:config['rdend']].replace('_','').replace(':','').replace('-','')
-            filedate = int(filedatestr[0:-2])
-            if filedate >= sdatetime and filedate <= edatetime:
+            try: filedatestr = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',fullname).group()
+            except AttributeError: filedatestr = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',fullname).group()
+            filedatestr = filedatestr.replace('_','').replace(':','').replace('-','')
+            filedate = filedatestr[0:-2]
+            if int(filedate) >= int(sdatetime) and int(filedate) <= int(edatetime):
                 rfiles.append(rfile)
     
     if rfiles == []:
@@ -311,9 +329,13 @@ def polarris_driver(configfile):
 
     tm = []
     for d in rfiles:
-        dformat = config['rdate_format']
         base = os.path.basename(d)
-        radcdate=str(base[config['rdstart']:config['rdend']])
+        try: 
+            radcdate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',base).group()
+            dformat = '%Y%m%d_%H%M%S'
+        except AttributeError: 
+            radcdate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+            dformat = '%Y-%m-%d_%H:%M:%S'
         date=datetime.datetime.strptime(radcdate,dformat)
         tm.append(date)
 
@@ -354,16 +376,17 @@ def polarris_driver(configfile):
             dfiles1 = g.read().splitlines()
         tmd = []
         for d in dfiles1:
-            dformat = config['ddate_format']
             base = os.path.basename(d)
-            radcdate = base[config['ddstart']:config['ddend']]
-            if dformat == '%H%M':
-                hr=int(base[config['ddstart']:config['ddstart']+2])
-                mn=int(base[config['ddstart']+2:config['ddstart']+4])
-                dstart=datetime.datetime.strptime(config['date'],'%Y%m%d')
-                dat2 = datetime.datetime(dstart.year,dstart.month,dstart.day,hr,mn)
-            else:
-                dat2=datetime.datetime.strptime(radcdate,dformat)
+            try: 
+                radcdate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',base).group()
+                dformat = '%Y%m%d_%H%M%S'
+            except AttributeError: 
+                radcdate = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',base).group()
+                dformat = '%Y-%m-%d_%H:%M:%S'
+            except AttributeError:
+                radcdate = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}',base).group()
+                dformat = '%Y%m%d_%H%M'
+            dat2=datetime.datetime.strptime(radcdate,dformat)
             tmd.append(dat2)
 
         print('Matching Dual-Doppler')
@@ -382,9 +405,6 @@ def polarris_driver(configfile):
             dvar['z'] = newz
             
         elif config['type'].startswith('wrf'):
-            dvar = rvar.rename({config['xname']:'x'})
-            dvar = rvar.rename({config['yname']:'y'})
-             
             currx = deepcopy(dvar['x'].values)
             newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
             dvar['x'] = newx
@@ -398,14 +418,6 @@ def polarris_driver(configfile):
             newz = xr.DataArray(hgt, coords={'z': hgt})
             dvar['z'] = newz
         
-        # NEW! MultiDop names velocity fields in long-form. Shorten fieldnames in dopp files here for plotting labels.
-        Uname = 'U'
-        Vname = 'V'
-        Wname = 'W'
-        dvar = dvar.rename({config['uname']:Uname})
-        dvar = dvar.rename({config['vname']:Vname})
-        dvar = dvar.rename({config['wname']:Wname})
-
         unew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
         unew.fill(np.nan)
 
@@ -438,11 +450,9 @@ def polarris_driver(configfile):
                 dfile = dmatch[d]
                 if dfile in dfiles1:
                     i = dfiles1.index(dfile)
-                    #wvar[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['wname']].sel(d=i)
-                    unew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Uname][i,:,:,:]
-                    vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Vname][i,:,:,:]
-                    wnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[Wname][i,:,:,:]
-                    #conv[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar[config['convname']][i,:,:,:]
+                    unew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['u'][i,:,:,:]
+                    vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['v'][i,:,:,:]
+                    wnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['w'][i,:,:,:]
 
         if config['type'].startswith('wrf'):
             unew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, unew)
@@ -452,15 +462,10 @@ def polarris_driver(configfile):
             wnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, wnew)
             wnew = np.where(wnew == -999.0, np.nan, wnew)
 
-        rvar[Uname] = (['d','z','y','x'],unew)
-        rvar[Vname] = (['d','z','y','x'],vnew)
-        rvar[Wname] = (['d','z','y','x'],wnew)
-
-    else:
-
-        Uname = None
-        Vname = None
-        Wname = None
+        rvar['u'] = (['d','z','y','x'],unew)
+        rvar['v'] = (['d','z','y','x'],vnew)
+        rvar['w'] = (['d','z','y','x'],wnew)
+        rvar['conv'] = (['d','z','y','x'],conv)
 
     print('\nSending data to RadarData...')
  
@@ -480,7 +485,7 @@ def polarris_driver(configfile):
             rvar['t_air'].values = deepcopy(rvar['t_air'])-273.15
 
     if config['type'].startswith('obs') or config['type'].startswith('wrf'):
-        rdata = RadarData.RadarData(rvar,tm,ddata = None,u=Uname,v=Vname,w=Wname,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
     else:
         rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
 
@@ -491,6 +496,7 @@ def polarris_driver(configfile):
         if len(smatch) > 0:
             sfile = smatch[rfiles[0]]
             print ('Found sounding match!',sfile,'\n')
+            input()
             snd = SkewT.Sounding(sfile)
             rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
             rdata.interp_sounding()
@@ -527,4 +533,4 @@ def polarris_driver(configfile):
 #     rdata.data[rdata.rho_name].values[whbad2] = np.nan
 #     rdata.data[rdata.w_name].values[whbad2] = np.nan
 
-    return rdata, config, Uname, Vname, Wname
+    return rdata, config

@@ -176,6 +176,7 @@ else
     tempfile=temp_${tempsrc}_${stt[0]}_${edt[${#edt[@]}-1]}.txt
     snd_on='True'
     wrft_on='False'
+    sstat=$(basename $tempdir)
 
     declare -a beffiles=()
     declare -a infiles=()
@@ -337,6 +338,8 @@ outfigdir=outputfig/${fold}_temp${tempsrc}_${station}_${stt[0]}_${edt[${#edt[@]}
 outrrdir=$(cd $raddir/../../ && pwd)/radar_rainrates/$station
 mkdir -p $outfigdir $outrrdir
 
+template=$ipoldir/ipol_config.txt
+
 if [ -z $simdir ]; then
 
     echo
@@ -344,7 +347,6 @@ if [ -z $simdir ]; then
     echo
     sleep 3
 
-    template=$ipoldir/${agency}_${data}_config.txt
     cp $template $configdir/$configfile
 
     sed -i '' "s/^type ==.*/type == $data == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" $configdir/$configfile
@@ -361,6 +363,7 @@ if [ -z $simdir ]; then
         sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
     elif [[ "$snd_on" == "True" ]]; then
         sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
+        sed -i '' "s%.*sstat ==.*%sstat == '$configdir/$tempfile' == # Sounding station name%g" $configdir/$configfile
     fi
     if [[ "$dd_on" == "True" ]]; then
         sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
@@ -394,7 +397,6 @@ else
     sleep 3
 
     echo OBS
-    template=$ipoldir/${agency}_obs_config.txt
     cp $template $configdir/$configfile
 
     sed -i '' "s/^type ==.*/type == obs == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" $configdir/$configfile
@@ -407,6 +409,7 @@ else
         sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
     elif [[ "$snd_on" == "True" ]]; then
         sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
+        sed -i '' "s%.*sstat ==.*%sstat == '$configdir/$tempfile' == # Sounding station name%g" $configdir/$configfile
     fi
     if [[ "$dd_on" == "True" ]]; then
         sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
@@ -421,12 +424,10 @@ else
     sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" $configdir/$configfile
     sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" $configdir/$configfile
 
-    template2=$ipoldir/${agency}_wrf_config.txt
-    
     for ((ii=0;ii<${#allmps[@]};ii++)); do
         
         echo MP=$(echo ${allmps[ii]} | tr '[:lower:]' '[:upper:]')
-        cp $template2 ${configfiles2[ii]}
+        cp $template ${configfiles2[ii]}
 
         sed -i '' "s/^type ==.*/type == wrf == # Type of input data: 'obs' OR 'wrf' (obs + simulated)/g" ${configfiles2[ii]}
         sed -i '' "s/.*data ==.*/data == $(echo ${allmps[ii]}) == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'/g" ${configfiles2[ii]}

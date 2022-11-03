@@ -78,7 +78,7 @@ print('##########################################################')
 
 time.sleep(3)
 
-rdata, config, config['uname'], config['vname'], config['wname'] = polarris_driver(configfile)
+rdata, config = polarris_driver(configfile)
 
 print('\n#################################################')
 print('########## Returning to run_ipolarris.py ########')
@@ -101,14 +101,12 @@ if sys.argv[2:]:
     time.sleep(3)
 
     for cf in configfiles:
-        rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(cf)
+        rdata2, config2 = polarris_driver(cf)
         rdatas[rdata2.rsrc] = rdata2
         configs[rdata2.rsrc] = config2
 
     rk = list(rdatas.keys())
 
-    #rdata2, config2, config2['uname'], config2['vname'], config2['wname'] = polarris_driver(configfiles)
-    
     print('\n#################################################')
     print('########## Returning to run_ipolarris.py ########')
     print('#################################################')
@@ -205,56 +203,7 @@ if sys.argv[2:]:
                         plt.savefig('{d}{p}_{vv}_CFAD_{t1}-{t2}.{t}'.format(d=outdir,p=rdatas[rk[0]].exper,vv=rdatas[rk[0]].names_uc[v0],t1=st,t2=en),dpi=400,bbox_inches='tight',t=config['ptype'])
                 
                 plt.close()
-            '''  
-            else:
 
-                if not rdatas[rk[0]].cfbins[config[v]] == '' and config[v] in rdatas[rk[0]].data.variables.keys():
-                    
-                    print(v)
-
-                    fig, ax = plt.subplots(1,3,figsize=(16,8),gridspec_kw={'wspace': 0.1, 'top': 1., 'bottom': 0., 'left': 0., 'right': 1.}) 
-                    if not isinstance(ax, np.ndarray) or not isinstance(ax, list): 
-                        ax = np.array([ax])
-                    axf = ax.flatten()
-
-                    if not zmax == '':
-                        ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
-                        scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
-                        dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,zmax=zmax,diff=1)
-                    else:
-                        ocfad, hts, pc, fig0, ax0 = rdatas[rk[0]].cfad_plot(config[v],ax=axf[0],cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1)
-                        scfad, hts2, pc2, fig1, ax1 = rdatas[rk[1]].cfad_plot(config2[v],ax=axf[1],ylab=False,cbar=False,bins=rdatas[rk[1]].cfbins[config2[v]],z_resolution=config['z_resolution'],levels=1)
-                        dcfad, hts3, pc3, fig2, ax2 = rdatas[rk[0]].cfad_plot(config[v],cfad=ocfad-scfad,hts=hts,ax=axf[2],ylab=False,cbar=False,bins=rdatas[rk[0]].cfbins[config[v]],z_resolution=config['z_resolution'],levels=1,diff=1)
-
-                    lur,bur,wur,hur = axf[0].get_position().bounds
-                    lur2,bur2,wur2,hur2 = axf[1].get_position().bounds
-                    cbar_ax_dims = [lur,bur-0.13,lur2+wur2,0.03]
-                    cbar_ax = fig.add_axes(cbar_ax_dims)
-                    cbt = plt.colorbar(pc,cax=cbar_ax,orientation='horizontal')
-                    cbt.ax.tick_params(labelsize=16)
-                    cbt.set_ticks(rdatas[rk[0]].cfad_levs)
-                    cbt.set_label('Frequency (%)', fontsize=16, labelpad=10)
-
-                    lur3,bur3,wur3,hur3 = axf[2].get_position().bounds
-                    cbar_ax_dims3 = [lur3,bur3-0.13,wur3,0.03]
-                    cbar_ax3 = fig.add_axes(cbar_ax_dims3)
-                    cbt3 = plt.colorbar(pc3,cax=cbar_ax3,orientation='horizontal')
-                    cbt3.ax.tick_params(labelsize=16)
-                    cbt.set_ticks(rdatas[rk[0]].cfad_levs)
-                    cbt3.set_label('Frequency Difference (%)', fontsize=16, labelpad=10)
-
-                    axf[0].text(0,1,'{e} {r}'.format(e=rdatas[rk[0]].exper,r=rdatas[rk[0]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[0].transAxes)
-                    axf[1].text(0,1,'{e} {r}'.format(e=rdatas[rk[1]].exper,r=rdatas[rk[1]].band+'-band'),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[1].transAxes)
-                    axf[2].text(0,1,'({e1} - {e2})'.format(e1=rdatas[rk[0]].exper,e2=rdatas[rk[0]].exper),horizontalalignment='left',verticalalignment='bottom',size=18,color='k',zorder=10,weight='bold',transform=axf[2].transAxes)
-                    axf[2].text(0.99,0.99, dtlab, horizontalalignment='right', verticalalignment='top', size=18, color='k', zorder=10, weight='bold', transform=axf[2].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0)) # (a) Top-left
-                  
-   
-                    plt.close()
-
-                else:
-                    
-                    continue
-            '''
             print('\nDone! Saved to '+outdir)
             print('Moving on.\n')
   
@@ -275,7 +224,7 @@ else:
     if (config['compo_ref'] | config['all1']):
     
         print('\nIN RUN_IPOLARRIS_NEW... creating COMPOSITE figures.')
-        print('\nPlotting composites by time for variable '+rdata.dz_name+'...')
+        print('\nPlotting composites by time for variable '+rdata.names_uc[rdata.dz_name]+'...')
             
         outdir = config['image_dir']+'composite_'+rdata.names_uc[rdata.dz_name]+'/'
         os.makedirs(outdir,exist_ok=True)
