@@ -221,7 +221,7 @@ else:
     
     #############################################################################
    
-    if (config['compo_ref'] | config['all1']):
+    if config['compo_ref']:
     
         print('\nIN RUN_IPOLARRIS_NEW... creating COMPOSITE figures.')
         print('\nPlotting composites by time for variable '+rdata.names_uc[rdata.dz_name]+'...')
@@ -260,7 +260,7 @@ else:
     
     #############################################################################
 
-    if (config['cappi_rr'] | config['all1']) and not config['rr_on'] == '':
+    if config['cappi_rr'] and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating CAPPI figures.')
         print('Plotting CAPPIs for all heights by time for variable '+rdata.rr_name+'...')
@@ -307,7 +307,7 @@ else:
 
     #############################################################################
     
-    if (config['rrstats_txt'] | config['all2']) and not config['rr_on'] == '':
+    if config['rrstats_txt'] and not config['rr_on'] == '':
         
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing unconditional-mean statistics for variable '+rdata.rr_name+'...')
@@ -356,7 +356,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
 
-    if (config['rrhist_txt'] | config['all2']) and not config['rr_on'] == '':
+    if config['rrhist_txt'] and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing histogram data for variable '+rdata.rr_name+'...')
@@ -380,7 +380,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
    
-    if (config['rrstats_areas_txt'] | config['all2']) and not config['rr_on'] == '':
+    if config['rrstats_areas_txt'] and not config['rr_on'] == '':
         ###Areas
         print('\nIN RUN_IPOLARRIS_NEW... creating text files.')
         print('Printing domain area statistics for '+rdata.rr_name+'...')
@@ -405,7 +405,7 @@ else:
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
 
-    if (config['rr_timeseries'] | config['all1']) and not config['rr_on'] == '':
+    if config['rr_timeseries'] and not config['rr_on'] == '':
 
         print('\nIN RUN_IPOLARRIS_NEW... creating timeseries.')
         print('Plotting timeseries for variable '+rdata.rr_name+'...')
@@ -433,7 +433,7 @@ else:
     ##Next let's make quantile (50,90,99) plots of the vertical velocity. This splits it by up and down, but you can turn split_updn == False
     if rdata.w_name is not None:
 
-        if (config['vv_profiles'] | config['all1']):
+        if config['vv_profiles']:
  
             print('\nIN RUN_IPOLARRIS_NEW... creating vertical profile figure.')
             print('Plotting vertical profile for variable '+rdata.w_name+'...')
@@ -455,7 +455,7 @@ else:
             print('\nDone! Saved to '+config['image_dir'])
             print('Moving on.\n')
  
-        if (config['percentiles_txt'] | config['all2']):
+        if config['percentiles_txt']:
 
             print('\nIN RUN_IPOLARRIS_NEW... creating percentile text file.')
             print('Printing percentile data for variable '+rdata.w_name+'...')
@@ -494,7 +494,7 @@ else:
     
     #############################################################################
  
-    if (config['vert_ref'] | config['all1']):
+    if config['vert_ref']:
  
         print('\nIN RUN_IPOLARRIS_NEW... creating vertical profile figure.')
         print('Plotting vertical profile for variable '+rdata.dz_name+'...')

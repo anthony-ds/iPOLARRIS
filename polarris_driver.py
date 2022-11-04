@@ -496,7 +496,6 @@ def polarris_driver(configfile):
         if len(smatch) > 0:
             sfile = smatch[rfiles[0]]
             print ('Found sounding match!',sfile,'\n')
-            input()
             snd = SkewT.Sounding(sfile)
             rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
             rdata.interp_sounding()

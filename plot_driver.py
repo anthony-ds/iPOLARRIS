@@ -780,7 +780,7 @@ def make_single_pplots(rdat,config,y=None):
     tms = np.array(rdat.date)
     outpath = config['image_dir']
 
-    if (config['pol_compare'] | config['all3']):
+    if config['pol_compare']:
      
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel CFADs for various polarimetric vars.\n')
     
@@ -887,7 +887,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
 
-    if (config['cfad_multi'] | config['all3']):
+    if config['cfad_multi']:
  
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel CFADs for various polarimetric vars.\n')
         print('Plotting CFADs for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.cfad_vars))])+'...')
@@ -931,7 +931,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
 
 
-    if (config['cfad_individ'] | config['all3']):
+    if config['cfad_individ']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating individual CFADs for various polarimetric vars.\n')
         outdir = outpath+'cfad_individ/'
@@ -983,7 +983,7 @@ def make_single_pplots(rdat,config,y=None):
                 print('Moving on.\n')
          
 
-    if (config['hist_multi'] | config['all3']):
+    if config['hist_multi']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel histograms comparing various polarimetric vars.\n')
         outdir = outpath+'hist_multi/'
@@ -1039,7 +1039,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
 
-    if (config['hid_prof'] | config['all3']):
+    if config['hid_prof']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating vertical profiles of water, graupel, hail and snow.')
 
@@ -1071,7 +1071,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
 
-    if (config['up_width'] | config['all3']):
+    if config['up_width']:
             
         if config['wname'] in rdat.data.variables.keys():
         
@@ -1098,7 +1098,7 @@ def make_single_pplots(rdat,config,y=None):
             print('Moving on.\n')
      
 
-    if (config['cappi_multi'] | config['all3']):
+    if config['cappi_multi']:
  
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel CAPPIs for various polarimetric vars.')
         print('Plotting CAPPIs by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.cappi_vars))])+'...')
@@ -1158,7 +1158,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
     
-    if (config['cappi_individ'] | config['all3']):
+    if config['cappi_individ']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating individual CAPPIs for various polarimetric vars.')
         print('Plotting CAPPIs by time...\n')
@@ -1220,7 +1220,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
 
 
-    if (config['rhi_multi'] | config['all3']):
+    if config['rhi_multi']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various polarimetric vars.')
         print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.rhi_vars))])+'...')
@@ -1281,7 +1281,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
 
-    if (config['rhi_individ'] | config['all3']):
+    if config['rhi_individ']:
 
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating individual RHIs for various polarimetric vars.')
         print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time.\n')
@@ -1342,7 +1342,7 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
 
 
-    if config['qr_cappi']:
+    if config['qr_cappi'] and rdat.rtype.startswith('wrf'):
 
         for ts in tms:
         
