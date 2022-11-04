@@ -308,12 +308,11 @@ def polarris_driver(configfile):
         refvals = np.where(refvals < float(config['refthresh']), np.nan, refvals)
         
         elevs = deepcopy(rvar['elev01'].values) 
-        elevs = np.where(elevs < float(config['mincosthresh']), np.nan, elevs)
-        refvals = np.where(elevs > float(config['maxcosthresh']), np.nan, refvals) 
-
+        refvals = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, refvals)
+        
         newref = xr.DataArray(refvals, dims=['d','z','y','x'], name='zhh01')
         rvar['zhh01'] = newref
-        
+       
         parsers = ['zdr01','kdp01','rhohv01','vrad01']
         for v in parsers:
             newvals = deepcopy(rvar[v].values)
@@ -322,7 +321,14 @@ def polarris_driver(configfile):
             newvals = np.where(np.isnan(refvals),np.nan,newvals)
             newvar = xr.DataArray(newvals, dims=['d','z','y','x'], name=v)
             rvar[v] = newvar
-   
+ 
+        qvars = ['qc', 'qr', 'qi', 'qs', 'qg', 'qh']
+        for v in qvars:
+            qvals = deepcopy(rvar[v].values)
+            qvals = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, qvals)
+            newq = xr.DataArray(qvals, dims=['d','z','y','x'], name=v)
+            rvar[v] = newq
+  
     # =====
     # (3) Get datetime objects from radar file names.
     # =====
