@@ -485,7 +485,7 @@ def polarris_driver(configfile):
             rvar['t_air'].values = deepcopy(rvar['t_air'])-273.15
 
     if config['type'].startswith('obs') or config['type'].startswith('wrf'):
-        rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],rr_on=config['rr_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
     else:
         rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
 
