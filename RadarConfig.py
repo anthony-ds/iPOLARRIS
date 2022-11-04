@@ -10,7 +10,7 @@ import pyart
 
 class RadarConfig(object):
    
-    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='u', v='v',rr='RR', w='w',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,hid_on=True,hid_cats = 'summer'):
+    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='u', v='v',rr='RR', w='w',qc='qc',qr='qr',qg='qg',qh='qh',qi='qi',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,rr_on=False,hid_on=True,hid_cats = 'summer'):
         
         # ******** first the polarimetric stuff *************
        
@@ -48,7 +48,7 @@ class RadarConfig(object):
             self.temp_name = 't_air' # Name of the temperature field
             self.lon_name = 'longitude' # File naming of the longitude variable 
             self.lat_name = 'latitude' # File naming of the latitude variable
-        
+
         else:    
         
             self.dz_name = dz
@@ -62,13 +62,19 @@ class RadarConfig(object):
         
         print('in config, lat name is ',self.lat_name)
  
-        self.u_name = 'u' # Name of the zonal wind field
-        self.v_name = 'v' # Name of the meridional wind field
-        self.w_name = 'w' # Name of the vertical wind field
-        self.x_name = 'x' # File naming of the zonal directional variable
-        self.y_name = 'y' # File naming of the meridional directional variables
-        self.z_name = 'z' # File naming of the vertical level field
-   
+        self.u_name = u # Name of the zonal wind field
+        self.v_name = v # Name of the meridional wind field
+        self.w_name = w # Name of the vertical wind field
+        self.x_name = x # File naming of the zonal directional variable
+        self.y_name = y # File naming of the meridional directional variables
+        self.z_name = x # File naming of the vertical level field
+
+        self.qc_name = qc
+        self.qr_name = qr
+        self.qg_name = qg
+        self.qh_name = qh
+        self.qi_name = qi
+
         self.conv_name = conv
         self.cs_name = 'CSS'
         self.rr_name = rr
@@ -78,6 +84,7 @@ class RadarConfig(object):
             self.rr_name = 'RR'
         self.hid_on = hid_on
         self.dd_on = dd_on
+        self.rr_on = rr_on
 
         ########set up some experiment parameters ############
         self.exper=exper
@@ -127,17 +134,18 @@ class RadarConfig(object):
         self.cfad_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
         self.cfad_compare_vars = [self.hid_name if self.hid_on else None,self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.w_name if self.dd_on else None] #Names of vars for RHI plots
         self.cappi_vars = [self.dz_name,self.zdr_name,self.kdp_name,self.rho_name,self.vr_name,self.hid_name if self.hid_on else None] #Names of vars for RHI plots
+        self.mix_vars = [self.qc_name,self.qr_name,self.qg_name,self.qi_name,self.qh_name,self.rr_name if self.rr_on else None,self.vr_name,self.hid_name if self.hid_on else None] #Mixing ratios from model to plot.
 
         # Now just set some defaults
         self.lims = {self.dz_name: [0,80], self.zdr_name: [-1, 3], self.kdp_name: [-0.5, 3], self.ldr_name: [-35, -20], self.rho_name: [0.95, 1.00], self.hid_name: [0,len(self.species)+1],self.u_name: [-20,80],self.w_name:[-2,2],self.vr_name:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30]}
         self.cfbins = {self.dz_name: np.arange(-10,60.1,1), self.zdr_name: np.arange(-2,6.01,0.05), self.kdp_name: np.arange(-2,2.01,0.05), self.rho_name: np.arange(0.5,1.01,0.02), self.hid_name: '' , self.u_name: np.arange(-20,81,2), self.w_name: np.arange(-6,6.1,0.5), self.temp_name: np.arange(20,-60.1,-5)} 
         self.delta = {self.dz_name: 10, self.zdr_name: 1, self.kdp_name: 1, self.ldr_name: 5, self.rho_name: 0.005, self.hid_name: 1,self.w_name:5,self.vr_name:5,self.cs_name:1,self.rr_name:10,self.temp_name:5}
-        self.units = {self.dz_name: '(dBZ)', self.zdr_name: '(dB)', self.kdp_name: '($^{\circ}$ km$^{-1}$)', self.ldr_name: '(dB)', self.rho_name: '', self.hid_name: '', self.u_name: '(m s$^{-1}$)', self.w_name:'(m s$^{-1}$)',self.vr_name:'(m s$^{-1}$)',self.cs_name:'',self.rr_name:'(mm hr$^{-1}$)',self.temp_name:'C'}
+        self.units = {self.dz_name: '(dBZ)', self.zdr_name: '(dB)', self.kdp_name: '($^{\circ}$ km$^{-1}$)', self.ldr_name: '(dB)', self.rho_name: '', self.hid_name: '', self.u_name: '(m s$^{-1}$)', self.w_name:'(m s$^{-1}$)',self.vr_name:'(m s$^{-1}$)',self.cs_name:'',self.rr_name:'(mm hr$^{-1}$)',self.temp_name:'($^{\circ}$C)',self.qc_name:'(g kg$^{-1}$)',self.qr_name:'(g kg$^{-1}$)',self.qg_name:'(g kg$^{-1}$)',self.qh_name:'(g kg$^{-1}$)',self.qi_name:'(g kg$^{-1}$)'}
         self.names = {self.dz_name: 'Z', self.zdr_name: 'Z$_{DR}$', self.kdp_name: 'K$_{dp}$', self.ldr_name: 'LDR', self.rho_name: r'$\rho_{hv}$', self.hid_name: '',self.w_name:'',self.vr_name:'V$_r$',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
         self.names_uc = {self.dz_name: 'REF', self.zdr_name: 'ZDR', self.kdp_name: 'KDP', self.ldr_name: 'LDR', self.rho_name: 'RHO', self.hid_name: 'HID', self.u_name:'U', self.w_name:'W',self.vr_name:'VRAD',self.cs_name:'',self.rr_name:'RR',self.temp_name:'T'}
         self.longnames = {self.dz_name: 'Reflectivity', self.zdr_name: 'Differential Reflectivity', self.kdp_name: 'Specific Differential Phase',\
                 self.ldr_name: 'Linear Depolarization Ratio', self.rho_name: 'Correlation Coefficient', self.hid_name: 'Hydrometeor Identification',self.w_name:'Vertical Velocity',self.vr_name:'Radial Velocity',\
-                self.cs_name: 'Convective/Stratiform',self.rr_name:'Rain Rate',self.temp_name:'Temperature'}
+                self.cs_name: 'Convective/Stratiform',self.rr_name:'Rain Rate',self.temp_name:'Temperature',self.qc_name:'Cloud Water Mixing Ratio',self.qr_name:'Rain Water Mixing Ratio',self.qg_name:'Graupel Mixing Ratio',self.qh_name:'Hail Mixing Ratio',self.qi_name:'Ice Mixing Ratio'}
         #self.cmaps = {self.dz_name: self.temp_cmap, self.zdr_name: plt.cm.Spectral_r, self.kdp_name: plt.cm.gist_heat_r, self.ldr_name: plt.cm.gist_rainbow_r, self.rho_name: plt.cm.jet, self.hid_name: self.hid_cmap,self.w_name:plt.cm.seismic,self.vr_name:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.cm.Spectral_r,self.temp_name:'RdYlBu_r'}
         self.cmaps = {self.dz_name: self.temp_cmap, self.zdr_name: plt.cm.Spectral_r, self.kdp_name: plt.cm.gist_heat_r, self.ldr_name: plt.cm.gist_rainbow_r, self.rho_name: plt.cm.jet, self.hid_name: self.hid_cmap,self.u_name: plt.cm.seismic, self.w_name:plt.cm.seismic,self.vr_name:plt.cm.bwr,self.cs_name: self.cs_cmap,self.rr_name:plt.get_cmap('pyart_HomeyerRainbow'),self.temp_name:'RdYlBu_r'}
         self.ticklabels = {self.dz_name: np.arange(0, 90, 10), self.zdr_name: np.arange(-1, 4, 1), self.kdp_name: np.arange(-0.5, 4.5, 1), 
