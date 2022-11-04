@@ -26,20 +26,6 @@ import cartopy.crs as ccrs
 import matplotlib.ticker as ticker
 
 
-def label_subplots(fig, xoff = 0.0, yoff = 0.02, nlabels = None,**kwargs):
-    letters = ['a', 'b', 'c', 'd','e', 'f', 'g', 'h','l', 'm','n','o','p','q','r']
-    figaxes = fig.get_axes()
-    if nlabels is None: nlabels = len(figaxes)
-
-    for fa in range(nlabels):
-        xbox = figaxes[fa].get_position()
-        xmin, ymax = xbox.xmin, xbox.ymax
-    # this is the position I want
-        if letters[fa] != '-':
-            fig.text(xmin+xoff, ymax+yoff, '({})'.format(letters[fa]),**kwargs) #,transform=figaxes[fa].transAxes)
-
-
-
 def plot_cfad_int(dat1,config,typ='dz',n1=None):
     fig, ax = plt.subplots(1,1,figsize=(8,6))
 #    axf = ax.flatten()
@@ -1114,27 +1100,15 @@ def make_single_pplots(rdat,config,y=None):
         for z in zspan: 
             
             print('\nz = '+str(z))
-            xlim = config['xlim']
-            ylim = config['ylim']
 
             for ii in range(len(tms)):
                 
                 ts = tms[ii]
                 print(ts)
                 
-                fig = rdat.cappi_multiplot(ts=ts,xlim=xlim,ylim=config['ylim'],z=z,res = config['cappi_vectres'],varlist = allvars,latlon=config['latlon'],statpt=True,dattype=config['type']) #eval(config['cappi_contours']))
+                fig = rdat.cappi_multiplot(ts=ts,xlim=config['xlim'],ylim=config['ylim'],z=z,res = config['cappi_vectres'],varlist = allvars,latlon=config['latlon'],statpt=True,dattype=config['type']) #eval(config['cappi_contours']))
                 #fig = rdat.cappi_multiplot(ts=ts,xlim=config['xlim'],ylim=config['ylim'],z=config['z'],res = config['cappi_vectres'],varlist = eval(config['cappi_vars']),vectors = eval(config['cvectors']),contours = None,statpt=True) #eval(config['cappi_contours']))
 
-                nvars = len(list(allvars))
-                if nvars <=6:
-                    yof = 0.01
-                else:
-                    yof = -0.02
-                yof = -0.01
-                xof = 0.01
-                
-                label_subplots(fig,yoff=yof,xoff=xof,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
- 
                 if not config['ptype'].startswith('mp4'):
                     plt.savefig('{i}{e}_multi_cappi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=z,t=ts),dpi=400,bbox_inches='tight')
                 else: 
@@ -1152,7 +1126,6 @@ def make_single_pplots(rdat,config,y=None):
 
                 os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=z))
                 
-                plt.close()
    
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
@@ -1170,12 +1143,14 @@ def make_single_pplots(rdat,config,y=None):
 
         for i,v in enumerate(allvars):
            
-            print(rdat.names_uc[v])
-
             if v is None:
                 continue
             else:
-        
+ 
+                print(rdat.names_uc[v])
+                outdir = outpath+'cappi_individ/'+rdat.names_uc[v]+'/'
+                os.makedirs(outdir,exist_ok=True)
+
                 for z in zspan: 
                     
                     print('\nz = '+str(z))
@@ -1183,10 +1158,7 @@ def make_single_pplots(rdat,config,y=None):
                     for ii in range(len(tms)):
                         ts = tms[ii]
                         print(ts)
-
-                        outdir = outpath+'cappi_individ/'+rdat.names_uc[v]+'/'
-                        os.makedirs(outdir,exist_ok=True)
-                        
+           
                         if v.startswith('HID'): cbar = 2
                         else: cbar = 1
                         
@@ -1298,7 +1270,9 @@ def make_single_pplots(rdat,config,y=None):
             else:
                 
                 print(rdat.names_uc[v])
-            
+                outdir = outpath+'rhi_individ/'+rdat.names_uc[v]+'/'
+                os.makedirs(outdir,exist_ok=True)
+        
                 for y in yspan:
 
                     print('\ny = '+str(y))
@@ -1306,10 +1280,7 @@ def make_single_pplots(rdat,config,y=None):
                     for ii in range(len(tms)):
                         ts = tms[ii]
                         print(ts)
-           
-                        outdir = outpath+'rhi_individ/'+rdat.names_uc[v]+'/'
-                        os.makedirs(outdir,exist_ok=True)
-                        
+                  
                         if v.startswith('HID'): cbar = 2
                         else: cbar = 1
                         
@@ -1342,25 +1313,72 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
 
 
-    if config['qr_cappi'] and rdat.rtype.startswith('wrf'):
+    if config['q_cappi_multi'] and rdat.rtype.startswith('wrf'):
 
-        for ts in tms:
+        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel CAPPIs for various MIXING RATIOS.')
+        print('Plotting CAPPIs by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.q_vars))])+'...')
         
-            print ("qr_cappi")
-            fig = rdat.cappi_multiplot(z=config['z'],ts=ts,xlim=config['xlim'],ylim=config['ylim'],varlist=list(filter(None,eval(config['mix_vars']))))
-            plt.savefig('{d}{p}_qcappi_6panel_{s:%Y%m%d%H%M%S}_{r}_{z}km.{t}'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',t=config['ptype'],z=config['z']),dpi=300)
-            plt.clf()
-    
+        outdir = outpath+'q_cappi_multi/'
+        os.makedirs(outdir,exist_ok=True)
+ 
+        if not config['z'] == '': zspan = list(eval(str([config['z']])))
+        else: zspan = rdat.data[rdat.z_name].values
+        
+        allvars = list(filter(None,rdat.q_vars))
 
-    if config['qr_rhi']:
+        for z in zspan: 
+            
+            print('\nz = '+str(z))
+
+            for ii in range(len(tms)):
+
+                ts = tms[ii]
+                print(ts)
+            
+                fig = rdat.cappi_multiplot(ts=ts,xlim=config['xlim'],ylim=config['ylim'],z=z,res = config['cappi_vectres'],varlist = allvars,latlon=config['latlon'],statpt=True,dattype=config['type']) #eval(config['cappi_contours']))
+                #fig = rdat.cappi_multiplot(ts=ts,xlim=config['xlim'],ylim=config['ylim'],z=config['z'],res = config['cappi_vectres'],varlist = eval(config['cappi_vars']),vectors = eval(config['cvectors']),contours = None,statpt=True) #eval(config['cappi_contours']))
+
+                if not config['ptype'].startswith('mp4'):
+                    plt.savefig('{i}{e}_q_multi_cappi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=z,t=ts),dpi=400,bbox_inches='tight')
+                else: 
+                    if len(rdat.date) < 6:
+                        plt.savefig('{i}{e}_q_multi_cappi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=z,t=ts),dpi=400,bbox_inches='tight')
+                    else:
+                        plt.savefig(outdir+'/fig'+str(ii).zfill(3)+'.png',dpi=400,bbox_inches='tight')
+                
+                plt.close()
+
+            if config['ptype'].startswith('mp4') and len(rdat.date) >= 6:
+
+                st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
+                en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
+
+                os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=z))
+                
+   
+        print('\nDone! Saved to '+outdir)
+        print('Moving on.\n')
+ 
+ 
+
+    if config['q_rhi_multi']:
+ 
+        outdir = outpath+'q_rhi_multi/'
+        os.makedirs(outdir,exist_ok=True)
+ 
+        if not config['y'] == '': yspan = list([config['y']])
+        else: yspan = rdat.data[rdat.y_name].values[0::50]
+ 
+        for y in yspan:
+
+            print('\ny = '+str(y))
+
+            for ts in tms:
+            
+                fig = rdat.xsec_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=list(filter(None,rdat.mix_vars)))
+                plt.savefig('{d}{p}_qrhi_6panel_{s:%Y%m%d%H%M%S}_{r}_{y}.png'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',y=config['y']),dpi=400)
+                plt.close()
         
-        for ts in tms:
-        
-            print ("qr_rhi")
-            fig = rdat.xsec_multiplot(ts=ts,y=config['y'],xlim=config['xlim'],varlist=list(filter(None,eval(config['mix_vars']))))
-            plt.savefig('{d}{p}_qrhi_6panel_{s:%Y%m%d%H%M%S}_{r}_{y}.{t}'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',t=config['ptype'],y=config['y']),dpi=300)
-            plt.clf()
-    
 
 def subset_convstrat(data,rdat,zlev=1):
     cssum =(rdat.data[rdat.cs_name].max(dim='z'))

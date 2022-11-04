@@ -1032,7 +1032,7 @@ class RadarData(RadarConfig.RadarConfig):
             fig = ax.get_figure()
 
         if var in self.lims.keys():
-            if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+            if var.startswith('u') or var.startswith('v') or var.startswith('w'):
                 norm = colors.TwoSlopeNorm(vmin=self.lims[var][0],vcenter=0,vmax=self.lims[var][1])
                 dummy = ax.pcolormesh(xdat, zdat, data, norm = norm, cmap = self.cmaps[var], **kwargs)
             else:
@@ -1250,7 +1250,7 @@ class RadarData(RadarConfig.RadarConfig):
             if not xlim: xmin, xmax = self.data[self.x_name].values.min(), self.data[self.x_name].values.max()
             else: xmin, xmax = np.min(xlim), np.max(xlim)
             
-            if not ylim: ymin, ymax = self.data[self.x_name].values.min(), self.data[self.x_name].values.max()
+            if not ylim: ymin, ymax = self.data[self.y_name].values.min(), self.data[self.y_name].values.max()
             else: ymin, ymax = np.min(ylim), np.max(ylim)
 
             if 'y' in self.data[self.x_name].dims: xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax),y=slice(ymin,ymax))
@@ -1274,6 +1274,8 @@ class RadarData(RadarConfig.RadarConfig):
             data = np.ma.masked_where(data < 1,data)
         elif var.startswith('RR'):
             data = np.ma.masked_where(data < 0.5,data)
+        elif var.startswith('q'):
+            data = np.ma.masked_where(data <= 0.0,data)
 
         if ax is None:
             if latlon: 
@@ -1287,14 +1289,14 @@ class RadarData(RadarConfig.RadarConfig):
         
         if var in self.lims.keys():
             if latlon:
-                if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+                if var.startswith('u') or var.startswith('v') or var.startswith('w'):
                     norm = colors.TwoSlopeNorm(vmin=self.lims[var][0], vcenter=0, vmax=self.lims[var][1]) 
                     dummy = ax.pcolormesh(xdat,ydat, data, norm = norm, cmap = self.cmaps[var], transform=ccrs.PlateCarree(), **kwargs)
                 else:
                     dummy = ax.pcolormesh(xdat,ydat, data, vmin = self.lims[var][0], vmax = self.lims[var][1], cmap = self.cmaps[var], transform=ccrs.PlateCarree(), **kwargs)
                     
             else:
-                if var.startswith('U') or var.startswith('V') or var.startswith('W'):
+                if var.startswith('u') or var.startswith('v') or var.startswith('w'):
                     norm = colors.TwoSlopeNorm(vmin=self.lims[var][0], vcenter=0, vmax=self.lims[var][1]) 
                     dummy = ax.pcolormesh(xdat,ydat, data, norm = norm, cmap = self.cmaps[var], **kwargs)
                 else:
@@ -1343,25 +1345,34 @@ class RadarData(RadarConfig.RadarConfig):
             
             if latlon:
             
-                minx = np.round(np.min(minxs)-0.1,1)
-                maxx = np.round(self.lon_0+(self.lon_0-np.min(minxs))+0.1,1)
-                miny = np.round(np.min(minys)-0.1,1)
-                maxy = np.round(np.max(maxys)+0.1,1)
-                
+                minx = np.round(np.min(minxs)+0.1,1)
+                maxx = np.round(self.lon_0+(self.lon_0-np.min(minxs))-0.1,1)
+                miny = np.round(np.min(minys)+0.1,1)
+                maxy = np.round(np.max(maxys)-0.1,1)
+
             else:
                 
-                minx = np.round(np.min(minxs),1)
-                maxx = np.round(np.abs(np.min(minxs)),1)
-                miny = np.round(np.min(minys),1)
-                maxy = np.round(np.max(maxys),1)
+                minx = np.floor(np.min(minxs),1)
+                maxx = np.ceil(np.abs(np.min(minxs)),1)
+                miny = np.floor(np.min(minys),1)
+                maxy = np.ceil(np.max(maxys),1)
  
         else:
 
-            minx = np.min(xlim)
-            maxx = np.max(xlim)
-            miny = np.min(ylim)
-            maxy = np.max(ylim)
-           
+            if latlon:
+            
+                minx = np.min(xlim)
+                maxx = np.max(xlim)
+                miny = np.min(ylim)
+                maxy = np.max(ylim)
+
+            else:
+
+                minx = np.floor(np.min(xlim))
+                maxx = np.ceil(np.max(xlim))
+                miny = np.floor(np.min(ylim))
+                maxy = np.ceil(np.max(ylim))
+            
         self.co_gridlines(fig,ax,latlonyn=latlon,minx=minx,maxx=maxx,miny=miny,maxy=maxy,xlab=xlab,ylab=ylab)
         
         if statpt: 
@@ -1376,7 +1387,7 @@ class RadarData(RadarConfig.RadarConfig):
                 cbt.ax.tick_params(labelsize=16)
                 cbt.set_label(self.names_uc[var]+' '+self.units[var], fontsize=16, rotation=270, labelpad=20)
             else:
-                self.mycbar(fig,ax,dummy,self.longnames[var]+' '+self.units[var])
+                self.mycbar(fig,ax,dummy,self.names_uc[var]+' '+self.units[var])
         
         elif cbar == 2 and var.startswith('HID'):
             lur,bur,wur,hur = ax.get_position().bounds
@@ -1400,7 +1411,7 @@ class RadarData(RadarConfig.RadarConfig):
             ax.set_title('%s %s CAPPI %.1f km MSL' %(ts, self.band+'-band', \
                     hts[z_ind]), fontsize = 14)
 #        print type(dummy),dummy
-        return dummy,ax
+        return dummy,[minx,maxx],[miny,maxy]
 
 #############################################################################################################
 
@@ -1441,25 +1452,28 @@ class RadarData(RadarConfig.RadarConfig):
             ax = np.array([ax], **kwargs)
         axf = ax.flatten()
         
-        for i, var in enumerate((good_vars)):
+        dummy,xlim,ylim = self.cappi(good_vars[0], z=z, ax=axf[0], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=0,ylab=1,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
+        for i, var in enumerate(good_vars[1:]):
             if contours is not None:
-                vcont = contours[i]
+                vcont = contours[i+1]
             else:
                 vcont = None
             if vectors is not None:
-                vect = vectors[i]
+                vect = vectors[i+1]
             else:
                 vect = None
             botpanels = np.arange(nvars-ncols,nvars)
-            xlabbool = True if i in botpanels else False
+            xlabbool = True if i+1 in botpanels else False
             lspanels = [ncols*n for n in range(0,nrows)]
-            ylabbool = True if i in lspanels else False
+            ylabbool = True if i+1 in lspanels else False
             #dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, vectors=vect,res=res,contour=vcont,thresh_dz =thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=False)
-            dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
+            dummy,xlim,ylim = self.cappi(var, z=z, ax=axf[i+1], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
         
         for i in range(len(good_vars),ncols*nrows):
             fig.delaxes(axf[i])
          
+        self.label_subplots(fig,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+ 
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
         
         axf[ncols-1].text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
@@ -3095,3 +3109,15 @@ class RadarData(RadarConfig.RadarConfig):
         cbt.set_label(labtxt, fontsize=16, rotation=270, labelpad=20)
 
         return cbt
+
+    def label_subplots(self,fig, xoff = 0.0, yoff = -0.01, nlabels = None,**kwargs):
+        letters = ['a', 'b', 'c', 'd','e', 'f', 'g', 'h','l', 'm','n','o','p','q','r']
+        figaxes = fig.get_axes()
+        if nlabels is None: nlabels = len(figaxes)
+
+        for fa in range(nlabels):
+            xbox = figaxes[fa].get_position()
+            xmin, ymax = xbox.xmin, xbox.ymax
+        # this is the position I want
+            if letters[fa] != '-':
+                fig.text(xmin+xoff, ymax+yoff, '({})'.format(letters[fa]),**kwargs) #,transform=figaxes[fa].transAxes)
