@@ -176,7 +176,6 @@ else
     tempfile=temp_${tempsrc}_${stt[0]}_${edt[${#edt[@]}-1]}.txt
     snd_on='True'
     wrft_on='False'
-    sstat=$(basename $tempdir)
 
     declare -a beffiles=()
     declare -a infiles=()
@@ -363,7 +362,6 @@ if [ -z $simdir ]; then
         sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
     elif [[ "$snd_on" == "True" ]]; then
         sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
-        sed -i '' "s%.*sstat ==.*%sstat == '$configdir/$tempfile' == # Sounding station name%g" $configdir/$configfile
     fi
     if [[ "$dd_on" == "True" ]]; then
         sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
@@ -409,7 +407,6 @@ else
         sed -i '' "s%.*wfiles ==.*%wfiles == '$configdir/$tempfile' == # Path to list of WRF temperature files to read in%g" $configdir/$configfile
     elif [[ "$snd_on" == "True" ]]; then
         sed -i '' "s%.*sfiles ==.*%sfiles == '$configdir/$tempfile' == # Path to list of sounding files to read in%g" $configdir/$configfile
-        sed -i '' "s%.*sstat ==.*%sstat == '$configdir/$tempfile' == # Sounding station name%g" $configdir/$configfile
     fi
     if [[ "$dd_on" == "True" ]]; then
         sed -i '' "s%.*dfiles ==.*%dfiles == '$configdir/$doppfile' == # Path to list of dual-Doppler files to read in%g" $configdir/$configfile
