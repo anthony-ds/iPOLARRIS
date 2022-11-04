@@ -1214,23 +1214,9 @@ def make_single_pplots(rdat,config,y=None):
                 print(ts)
 
                 if rdat.w_name is not None:
-                    fig = rdat.xsec_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
+                    fig = rdat.rhi_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 else:
-                    fig = rdat.xsec_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
-                
-                nvars=0
-                for var in allvars:
-                    if var in rdat.data.variables.keys():
-                        nvars+=1
-     
-                if nvars <= 6:
-                    yof = 0.01
-                else:
-                    yof=-0.02
-                yof = -0.01
-                xof = 0.01
-                
-                label_subplots(fig,yoff=yof,xoff=xof,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+                    fig = rdat.rhi_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 
                 if not config['ptype'].startswith('mp4'):
                     plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts),dpi=400,bbox_inches='tight')
@@ -1284,8 +1270,8 @@ def make_single_pplots(rdat,config,y=None):
                         if v.startswith('HID'): cbar = 2
                         else: cbar = 1
                         
-                        fig, ax = rdat.xsec(v,ts=ts,y=y,res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'],latlon=config['latlon'])
-                        #fig, ax = rdat.xsec(v,ts=ts,y=config['y'],vectors=eval(config['rvectors'])[i],res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'])
+                        fig, ax = rdat.rhi(v,ts=ts,y=y,res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'],latlon=config['latlon'])
+                        #fig, ax = rdat.rhi(v,ts=ts,y=config['y'],vectors=eval(config['rvectors'])[i],res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'])
                         
                         ax.text(0, 1, '{e} {r}'.format(e=rdat.exper,r=rdat.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
                         ax.text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
@@ -1360,25 +1346,46 @@ def make_single_pplots(rdat,config,y=None):
         print('Moving on.\n')
  
  
-
-    if config['q_rhi_multi']:
+    if config['q_rhi_multi'] and rdat.rtype.startswith('wrf'):
+ 
+        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various MIXING RATIOS.')
+        print('Plotting CAPPIs by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.q_vars))])+'...')
  
         outdir = outpath+'q_rhi_multi/'
         os.makedirs(outdir,exist_ok=True)
  
         if not config['y'] == '': yspan = list([config['y']])
         else: yspan = rdat.data[rdat.y_name].values[0::50]
- 
+
+        allvars = list(filter(None,rdat.rhi_vars))
+
         for y in yspan:
 
             print('\ny = '+str(y))
 
-            for ts in tms:
-            
-                fig = rdat.xsec_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=list(filter(None,rdat.mix_vars)))
-                plt.savefig('{d}{p}_qrhi_6panel_{s:%Y%m%d%H%M%S}_{r}_{y}.png'.format(d=outdir,p=rdat.exper,s=ts,r=rdat.band+'-band',y=config['y']),dpi=400)
+            for ii in range(len(tms)):
+                ts = tms[ii]
+                print(ts)
+
+                fig = rdat.rhi_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=list(filter(None,rdat.q_vars)))
+                        
+                if not config['ptype'].startswith('mp4'):
+                    plt.savefig('{i}{e}_q_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts),dpi=400,bbox_inches='tight')
+                else: 
+                    if len(rdat.date) < 6:
+                        plt.savefig('{i}{e}_q_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=y,t=ts),dpi=400,bbox_inches='tight')
+                    else:
+                        plt.savefig(outdir+'/fig'+str(ii).zfill(3)+'.png',dpi=400,bbox_inches='tight')
+                
                 plt.close()
-        
+
+            if config['ptype'].startswith('mp4') and len(rdat.date) >= 6:
+
+                st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
+                en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
+
+                os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_q_multi_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=y))
+ 
 
 def subset_convstrat(data,rdat,zlev=1):
     cssum =(rdat.data[rdat.cs_name].max(dim='z'))

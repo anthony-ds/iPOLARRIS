@@ -925,7 +925,7 @@ class RadarData(RadarConfig.RadarConfig):
         return
 #############################################################################################################
 
-    def score_xsec_plot(self, y=None, title_flag=False, *args, **kwargs):
+    def score_rhi_plot(self, y=None, title_flag=False, *args, **kwargs):
 
         "Cross section showing scores for all species, used as HID analysis tool"
         # first, get the appropriate y index from the y that's wanted
@@ -989,7 +989,7 @@ class RadarData(RadarConfig.RadarConfig):
         return fig, ax
 
 
-    def xsec(self, var, y=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
+    def rhi(self, var, y=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
         
         if ts is not None: 
             try:
@@ -1024,6 +1024,8 @@ class RadarData(RadarConfig.RadarConfig):
            
         if var.startswith('HID'):
             data = np.ma.masked_where(data < 1,data)
+        elif var.startswith('q'):
+            data = np.ma.masked_where(data <= 0.0,data)
 
         if ax is None:
             fig = plt.figure(figsize=(10,8))
@@ -1108,9 +1110,9 @@ class RadarData(RadarConfig.RadarConfig):
         if vectors:
 #                 try:
 #                     print( zmax,xlim,ts,res)
-                self.xsec_vector(ax=ax, y=y,zmax=zmax,xlim=xlim,ts=ts,res=res)
+                self.rhi_vector(ax=ax, y=y,zmax=zmax,xlim=xlim,ts=ts,res=res)
 #                 except Exception as e:
-#                     print ('Error trying to plot xsec vectors: {}'.format(e))
+#                     print ('Error trying to plot rhi vectors: {}'.format(e))
 
         if title_flag:
             ax.set_title('%s %s Cross Section' %(ts, self.band+'-band'), fontsize = 14)
@@ -1121,7 +1123,7 @@ class RadarData(RadarConfig.RadarConfig):
         return dummy, ax
 
     
-    def xsec_multiplot(self, y=0.5, xlim=[], zmax=[], ts=None, res = 2.0, varlist=None, vectors=None, latlon=False, **kwargs):
+    def rhi_multiplot(self, y=0.5, xlim=[], zmax=[], ts=None, res = 2.0, varlist=None, vectors=None, latlon=False, **kwargs):
     
         if ts is not None:
             try:
@@ -1174,9 +1176,11 @@ class RadarData(RadarConfig.RadarConfig):
             xlabbool = True if i in botpanels else False
             lspanels = [ncols*n for n in range(0,nrows)]
             ylabbool = True if i in lspanels else False
-            #dummy = self.xsec(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
-            dummy = self.xsec(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
+            #dummy = self.rhi(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
+            dummy = self.rhi(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
 
+        self.label_subplots(fig,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
 
         axf[ncols-1].text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
@@ -1486,9 +1490,9 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
     # Down here is dual doppler plotting stuff
 
-    def xsec_vector(self, y=None, xlim=None,zmax=None,ts=None,ax=None, res=2.0, ht_offset=0.2, **kwargs):
+    def rhi_vector(self, y=None, xlim=None,zmax=None,ts=None,ax=None, res=2.0, ht_offset=0.2, **kwargs):
         if ts is None:
-            print('xsec_vector got no time')
+            print('rhi_vector got no time')
             ts=self.date[0]
             tsi = 0
         try:
@@ -1577,7 +1581,7 @@ class RadarData(RadarConfig.RadarConfig):
                 else:
                     y_ind = self.get_ind(y,self.data[self.y_name].values)            
 
-#        print 'y in xsec', y
+#        print 'y in rhi', y
 
         if ax is None:
             fig, ax = plt.subplots(1,1)
@@ -3110,7 +3114,8 @@ class RadarData(RadarConfig.RadarConfig):
 
         return cbt
 
-    def label_subplots(self,fig, xoff = 0.0, yoff = -0.01, nlabels = None,**kwargs):
+    def label_subplots(self,fig, xoff = 0.01, yoff = -0.01, nlabels = None,**kwargs):
+        
         letters = ['a', 'b', 'c', 'd','e', 'f', 'g', 'h','l', 'm','n','o','p','q','r']
         figaxes = fig.get_axes()
         if nlabels is None: nlabels = len(figaxes)
