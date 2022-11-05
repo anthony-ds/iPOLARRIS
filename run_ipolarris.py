@@ -40,8 +40,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import time
-import warnings
-warnings.filterwarnings('ignore')
 import xarray as xr
 
 # Import iPOLARRIS functions

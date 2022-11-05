@@ -25,7 +25,7 @@ from datetime import datetime
 import os,sys
 import scipy.interpolate as si
 
-degC = '$^{\circ}$C'
+degC = '$^{o}$C'
 
 
 def wind_components(speed, direction, met_angle= 1):
@@ -350,7 +350,7 @@ class SkewXAxes(Axes):
             self.plot([TT,TT],[1100,pmin],color='y',lw=0.5)
 
         # self.set_ylabel('Pressure (hPa)')`
-        self.set_xlabel('Temperature ($^{\circ}$C)', fontsize = 12)
+        self.set_xlabel('Temperature ($^{o}$C)', fontsize = 12)
         self.set_ylabel('Pressure (hPa)', labelpad = 2, fontsize = 12)
         self.set_yticks(pres_levels)
         self.yaxis.set_major_formatter(ScalarFormatter())

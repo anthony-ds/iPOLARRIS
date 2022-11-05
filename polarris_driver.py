@@ -25,6 +25,8 @@ import RadarConfig
 import plot_driver
 from skewPy import SkewT
 import re
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def fix_my_data(ds):
     return(ds.drop(['VTZCS','CVECS']))
@@ -60,9 +62,9 @@ def match_dd(rdate,ddates):
         mval=np.argwhere(dum == np.min(dum))[0]
         diff=np.min(dum)
         if diff.total_seconds() < 600.:
-                return mval
+            return mval
         else:
-                return 'no'
+            return 'no'
     except ValueError: 
         print ('Something DD is not working here!')
 
@@ -510,7 +512,7 @@ def polarris_driver(configfile):
         print('masking model data')
         rdata.mask_model()
    
-    hid_on,qr_on,rr_on = False if config['hid_on'] is '' else True, False if config['qr_on'] is '' else True, False if config['rr_on'] is '' else True
+    hid_on,qr_on,rr_on = False if config['hid_on'] == '' else True, False if config['qr_on'] == '' else True, False if config['rr_on'] == '' else True
     rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir'],mode=config['type'],classify=config['hid_cols']) # HCA, RR, QR
     
     if not config['cs_z'] == '':
