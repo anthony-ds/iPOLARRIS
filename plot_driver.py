@@ -1341,7 +1341,8 @@ def make_single_pplots(rdat,config,y=None):
 
                 os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_multi_cappi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=z))
                 
-   
+            print('')
+        
         print('\nDone! Saved to '+outdir)
         print('Moving on.\n')
  
@@ -1386,6 +1387,11 @@ def make_single_pplots(rdat,config,y=None):
 
                 os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_q_multi_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,t1=st,t2=en,h=y))
  
+            print('')
+        
+        print('Done! Saved to '+outdir)
+        print('Moving on.\n')
+
 
 def subset_convstrat(data,rdat,zlev=1):
     cssum =(rdat.data[rdat.cs_name].max(dim='z'))
