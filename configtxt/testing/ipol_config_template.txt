@@ -13,7 +13,7 @@ xlim ==  == #lat / lon zoom for CAPPIS
 #xlim == [-150,150] == #lat / lon zoom for CAPPIS
 ylim ==  == #lat / lon zoom for CAPPIS
 #ylim == [45,49] ==
-ylim == [-150,150] == #lat / lon zoom for CAPPIS
+#ylim == [-150,150] == #lat / lon zoom for CAPPIS
 zmax == 10 ==
 
 y == 0.5 == # Lat of the y cross-section for RHI
@@ -75,12 +75,12 @@ hid_prof		    == False	    == # 17) Set to True to plot vertical profile of grou
 up_width		    == False	    == # 18) Set to True to plot vertical profile of updraft width with temperature.
 cappi_multi		    == False	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
 cappi_individ	    == False	    == # 20) Set to True to plot a CAPPI for x individual polarimetric variables at some altitude z (set z below; 1 figure per timestep)
-rhi_multi		    == False	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
+rhi_multi		    == True	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
 rhi_individ		    == False	    == # 22) Set to True to plot an RHI for x individual polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
 
 # Model Only
-qr_cappi		    == False	== # FK) Make cappi cross section of mixing ratios. change parameters in plot_driver.py (only valid for model)
-qr_rhi			    == True	== # FL) Make rhis of the mixing ratios (only valid for model)
+q_cappi_multi		    == False	== # FK) Make cappi cross section of mixing ratios. change parameters in plot_driver.py (only valid for model)
+q_rhi_multi			    == True	== # FL) Make rhis of the mixing ratios (only valid for model)
 
 refthresh == -20. ==#Threshold for good data
 wthresh == 5.                         ==#Threshold for 'updraft' statistics.
