@@ -44,14 +44,13 @@ def find_dd_match(rdum,ddum,rdate,ddates):
             #print cname
         mval = match_dd(dates,ddates)
         #print( dates,ddates)
-        
-        if mval != 'no':
+
+        if mval != -999:
             dfile = ddum[mval[0]]
             print('Found DD match!', dfile)
             mdfiles[cname] = dfile
         else:
             mdfiles[cname] = None
-
         
     return mdfiles
 
@@ -64,7 +63,7 @@ def match_dd(rdate,ddates):
         if diff.total_seconds() < 600.:
             return mval
         else:
-            return 'no'
+            return -999
     except ValueError: 
         print ('Something DD is not working here!')
 
