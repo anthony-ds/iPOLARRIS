@@ -1164,7 +1164,7 @@ class RadarData(RadarConfig.RadarConfig):
             ax = np.array([ax])
         axf = ax.flatten()
 
-        for i in range(len(good_vars),ncols*nrows):
+        for i in range(nvars,ncols*nrows):
             fig.delaxes(axf[i])
  
         for i, var in enumerate(good_vars):
@@ -1179,7 +1179,7 @@ class RadarData(RadarConfig.RadarConfig):
             #dummy = self.rhi(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
             dummy = self.rhi(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
 
-        self.label_subplots(fig,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        self.label_subplots(fig,nlabs=nvars,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
         
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
 
@@ -1473,10 +1473,10 @@ class RadarData(RadarConfig.RadarConfig):
             #dummy = self.cappi(var, z=z, ax=axf[i], xlim=xlim, ylim=ylim,ts = ts, vectors=vect,res=res,contour=vcont,thresh_dz =thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=False)
             dummy,xlim,ylim = self.cappi(var, z=z, ax=axf[i+1], xlim=xlim, ylim=ylim,ts = ts, res=res, thresh_dz=thresh_dz,xlab=xlabbool,ylab=ylabbool,cbar=1,labels=False,statpt=statpt,latlon=latlon,dattype=dattype)
         
-        for i in range(len(good_vars),ncols*nrows):
+        for i in range(nvars,ncols*nrows):
             fig.delaxes(axf[i])
          
-        self.label_subplots(fig,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        self.label_subplots(fig,nlabs=nvars,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
  
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
         
@@ -3114,15 +3114,14 @@ class RadarData(RadarConfig.RadarConfig):
 
         return cbt
 
-    def label_subplots(self,fig, xoff = 0.01, yoff = -0.01, labels = None, **kwargs):
+    def label_subplots(self,fig,nlabs=1,xoff=0.01,yoff=-0.01,labels=None,**kwargs):
         
         if labels is None: 
             labels = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)','(h)','(i)','(j)','(k)','(l)']
         
         figaxes = fig.get_axes()
-        if nlabels is None: nlabels = len(figaxes)
 
-        for fa in range(nlabels):
+        for fa in range(nlabs):
             xbox = figaxes[fa].get_position()
             xmin, ymax = xbox.xmin, xbox.ymax
         # this is the position I want
