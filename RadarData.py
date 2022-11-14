@@ -1179,7 +1179,7 @@ class RadarData(RadarConfig.RadarConfig):
             #dummy = self.rhi(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
             dummy = self.rhi(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
 
-        self.label_subplots(fig,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        self.label_subplots(fig,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
         
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
 
@@ -3114,9 +3114,11 @@ class RadarData(RadarConfig.RadarConfig):
 
         return cbt
 
-    def label_subplots(self,fig, xoff = 0.01, yoff = -0.01, nlabels = None,**kwargs):
+    def label_subplots(self,fig, xoff = 0.01, yoff = -0.01, labels = None, **kwargs):
         
-        letters = ['a', 'b', 'c', 'd','e', 'f', 'g', 'h','l', 'm','n','o','p','q','r']
+        if labels is None: 
+            labels = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)','(h)','(i)','(j)','(k)','(l)']
+        
         figaxes = fig.get_axes()
         if nlabels is None: nlabels = len(figaxes)
 
@@ -3124,5 +3126,4 @@ class RadarData(RadarConfig.RadarConfig):
             xbox = figaxes[fa].get_position()
             xmin, ymax = xbox.xmin, xbox.ymax
         # this is the position I want
-            if letters[fa] != '-':
-                fig.text(xmin+xoff, ymax+yoff, '({})'.format(letters[fa]),**kwargs) #,transform=figaxes[fa].transAxes)
+            fig.text(xmin+xoff, ymax+yoff, labels[fa],**kwargs) #,transform=figaxes[fa].transAxes)
