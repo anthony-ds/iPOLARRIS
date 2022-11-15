@@ -76,9 +76,9 @@ def match_snd(rdate,sdates):
         diff=np.min(dum)
         #allow 12 hours between the radar obs and the sounding
         if diff.total_seconds() < 43200:
-                return mval
+            return mval
         else:
-                return 'no'
+            return 'no'
     except ValueError: 
         print ('Something sound is not working here!')
 
@@ -477,6 +477,7 @@ def polarris_driver(configfile):
     print('\nSending data to RadarData...')
  
     if config['wrft_on']:
+
         print('In your config file, wrft_on is set to True.')
         time.sleep(3)
         if not 't_air' in list(rvar.keys()):
@@ -490,26 +491,36 @@ def polarris_driver(configfile):
                 rvar['T'] = tvar['t_air']-273.15
         else:
             rvar['t_air'].values = deepcopy(rvar['t_air'])-273.15
+ 
+    elif config['snd_on']:
 
-    if config['type'].startswith('obs') or config['type'].startswith('wrf'):
-        rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],rr_on=config['rr_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
-    else:
-        rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
-
-    if config['snd_on']:
         print('In your config file, snd_on is set to True.')
         time.sleep(3)
         smatch = find_snd_match(config)
         if len(smatch) > 0:
             print ('Found soundings!')
-            for ii in range(len(tm)):
-                sfile = smatch[rfiles[ii]]
+            hnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
+            for ii in range(len(rvar['z'])):
+                hnew[:,ii,:,:] = rvar['z'][ii]
+            tnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
+            tnew.fill(np.nan)
+            for jj in range(len(tm)):
+                sfile = smatch[rfiles[jj]]
                 snd = SkewT.Sounding(sfile)
-                rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
-                rdata.interp_sounding(ii)
+                #rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
+                #rdata.interp_sounding()
+                tnew[jj,:,:,:] = np.interp(hnew[jj,:,:,:],snd.data['hght']/1000.0,snd.data['temp'])
+            newt = xr.DataArray(tnew, dims=['d','z','y','x'], name='T')
+            rvar['T'] = newt
         else:
             print('No soundings available for this study period. Exiting gracefully.')
             sys.exit(1)
+
+   
+    if config['type'].startswith('obs') or config['type'].startswith('wrf'):
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],rr_on=config['rr_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
+    else:
+        rdata = RadarData.RadarData(rvar,tm,ddata = None,dz=config['dz_name'],zdr=config['dr_name'],kdp=config['kd_name'],rho=config['rh_name'],temp=config['t_name'],u=Uname,v=Vname,w=Wname,conv=config['convname'],rr=config['rr_name'],band = config['band'],vr = config['vr_name'],lat_r=config['lat'],lon_r=config['lon'],lat=config['latname'], lon=config['lonname'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],hid_cats=config['hid_cols'])
 
     if config['mask_model']:
         print('masking model data')
