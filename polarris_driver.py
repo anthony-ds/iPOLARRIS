@@ -501,12 +501,16 @@ def polarris_driver(configfile):
         time.sleep(3)
         smatch = find_snd_match(config)
         if len(smatch) > 0:
-            sfile = smatch[rfiles[0]]
-            print ('Found sounding match!',sfile,'\n')
-            snd = SkewT.Sounding(sfile)
-            rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
-            rdata.interp_sounding()
-    
+            print ('Found soundings!')
+            for ii in range(len(tm)):
+                sfile = smatch[rfiles[ii]]
+                snd = SkewT.Sounding(sfile)
+                rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
+                rdata.interp_sounding(ii)
+        else:
+            print('No soundings available for this study period. Exiting gracefully.')
+            sys.exit(1)
+
     if config['mask_model']:
         print('masking model data')
         rdata.mask_model()

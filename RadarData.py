@@ -571,18 +571,18 @@ class RadarData(RadarConfig.RadarConfig):
 #############################################################################################################
 
 
-    def interp_sounding(self):
+    def interp_sounding(self,d):
 
         """This will take the sounding data and interpolate it to the radar coordinates"""
         self.gridded_height = np.zeros(self.data[self.dz_name].shape)
         #print(self.x)
         if 'd' in self.data[self.z_name].dims:
             for i in range(self.data[self.z_name].shape[1]):
-                self.gridded_height[:,i,:,:] = self.data[self.z_name][0,i]
+                self.gridded_height[d,i,:,:] = self.data[self.z_name][0,i]
         else:
             for i in range(self.data[self.z_name].shape[0]):
                 #self.gridded_height[:,:,i,...] = self.data[self.z_name][i]
-                self.gridded_height[:,i,:,:] = self.data[self.z_name][i]
+                self.gridded_height[d,i,:,:] = self.data[self.z_name][i]
 
         self.T = np.interp(self.gridded_height, self.snd_height, self.snd_temp)
         self.add_field((self.data[self.dz_name].dims,self.T,), self.temp_name)

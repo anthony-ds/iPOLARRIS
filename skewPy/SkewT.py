@@ -911,7 +911,7 @@ class Sounding(UserDict):
     # This *should* be a convenient way to read a uwyo sounding
     #--------------------------------------------------------------------
         if self.fmt == 'UWYO': # READING IN STANDARD UNIVERSITY OF WYOMING FILES
-            print('working with UWYO sounding!')
+            #print('working with UWYO sounding!')
             fid = open(fname)
             lines = fid.readlines()
             nlines = len(lines)
@@ -1110,7 +1110,7 @@ class Sounding(UserDict):
         """
         from numpy import interp
 
-        print ('vals',startp, startt, startdp)
+        #print ('vals',startp, startt, startdp)
         assert startt >startdp, "Not a valid parcel. Check Td<Tc"
         Pres=linspace(startp, 50, 100)
 

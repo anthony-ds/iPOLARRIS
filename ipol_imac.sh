@@ -177,34 +177,45 @@ else
     snd_on='True'
     wrft_on='False'
 
-    declare -a beffiles=()
-    declare -a infiles=()
-    declare -a aftfiles=()
+    declare -a sndfiles=()
 
-    for filepath in $(ls $tempdir/* | sort); do
-
-        file=$(basename $filepath)
-        filedt=$(echo $file | cut -d '_' -f2 | tr -d '-')$(echo $file | cut -d '_' -f3 | cut -d '.' -f1 | tr -d ':')
-       
-        if [ "$filedt" -lt "$(echo ${stt[ii]} | tr -d '_')00" ]; then
-            beffiles+=($filepath)
-        elif [ "$filedt" -ge "$(echo ${stt[ii]} | tr -d '_')00" ] && [ "$filedt" -le "$(echo ${edt[ii]} | tr -d '_')00" ]; then
-            infiles+=($filepath)
-        elif [ "$filedt" -gt "$(echo ${edt[ii]} | tr -d '_')00" ]; then 
-            aftfiles+=($filepath)
-        fi
+    for ((ii=0;ii<${#starg[@]};ii++)); do
         
+        declare -a tmpsndfiles=()
+
+        for filepath in $(ls $tempdir/* | sort); do
+
+            file=$(basename $filepath)
+            filedt=$(echo $file | cut -d '_' -f2 | tr -d '-')$(echo $file | cut -d '_' -f3 | cut -d '.' -f1 | tr -d ':')
+            sttstr=$(echo ${stt[ii]} | tr -d '_')00
+            edtstr=$(echo ${edt[ii]} | tr -d '_')00
+            
+            hrstdiff=$(( $(date -jf %Y%m%d%H%M%S "$filedt" +%s)-$(date -jf %Y%m%d%H%M%S "$sttstr" +%s) ))
+            hrendiff=$(( $(date -jf %Y%m%d%H%M%S "$filedt" +%s)-$(date -jf %Y%m%d%H%M%S "$edtstr" +%s) ))
+
+            if [ ${hrstdiff#-} -le 21600 ]; then
+                tmpsndfiles+=($filepath)
+            fi
+            if [ ${hrendiff#-} -le 21600 ]; then
+                tmpsndfiles+=($filepath)
+            fi
+        
+        done
+
+        if [ ! ${#tmpsndfiles[@]} -eq 2 ]; then
+            echo Insufficient soundings for study period. Check and pull more!
+            echo
+            exit 1
+        fi
+
+        sndfiles+=($(echo ${tmpsndfiles[@]} | tr " " "\n" | sort -u | tr "\n" " "))
+
+    done
+    for file in ${sndfiles[@]}; do
+        echo $file
+        echo $file >> $configdir/$tfile
     done
 
-    echo $(basename ${beffiles[${#beffiles[@]}-1]})
-    echo ${beffiles[${#beffiles[@]}-1]} > $configdir/$tfile
-    for filep in ${infiles[@]}; do
-        echo $(basename $filep)
-        echo $filep >> $configdir/$tfile
-    done
-    echo $(basename ${aftfiles[0]})
-    echo ${aftfiles[0]} >> $configdir/$tfile
-    
 fi
 
 mv $configdir/$tfile $configdir/$tempfile
