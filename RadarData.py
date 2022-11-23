@@ -3077,7 +3077,7 @@ class RadarData(RadarConfig.RadarConfig):
             #if xlab: newax.set_xlabel('Longitude',fontsize=16)
             #if ylab: newax.set_ylabel('Latitude',fontsize=16)
 
-            ax.set_extent([minx,maxx,miny,maxy],crs=ccrs.PlateCarree())
+            ax.set_extent([minx,maxx,miny,maxy],crs=ccrs.PlateCarree()) #!! PROBLEM DETECTED for Cartopy > 0.18.0 - causes "leaked semaphore" error
             ax.set_aspect('auto')
 
         else:
