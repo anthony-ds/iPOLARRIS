@@ -1350,7 +1350,7 @@ class RadarData(RadarConfig.RadarConfig):
             if latlon:
             
                 minx = np.round(np.min(minxs)+0.1,1)
-                maxx = np.round(self.lon_0+(self.lon_0-np.min(minxs))-0.1,1)
+                maxx = np.round(2.0*self.lon_0-minx-0.1,1)
                 miny = np.round(np.min(minys)+0.1,1)
                 maxy = np.round(np.max(maxys)-0.1,1)
 
@@ -1476,7 +1476,7 @@ class RadarData(RadarConfig.RadarConfig):
         for i in range(nvars,ncols*nrows):
             fig.delaxes(axf[i])
          
-        self.label_subplots(fig,nlabs=nvars,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        self.label_subplots(fig,nlabs=nvars,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
  
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
         
@@ -2042,7 +2042,10 @@ class RadarData(RadarConfig.RadarConfig):
             cbt.set_label('Frequency (%)', fontsize=16, rotation=270, labelpad=20)
             cbt.set_ticks(self.cfad_levs)
               
+        self.label_subplots(fig,nlabs=nvars,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
+        
         axf[0].text(0, 1, '{e} {r}'.format(e=self.exper,r=self.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[0].transAxes) # (a) Top-left
+        
         axf[ncols-1].text(1, 1, dtlab, horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
  
         return fig, ax
@@ -3051,8 +3054,8 @@ class RadarData(RadarConfig.RadarConfig):
             gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=1.5, alpha=0.75, linestyle='--')
             gl.xlocator = ticker.MultipleLocator(base=lnspc)
             gl.ylocator = ticker.MultipleLocator(base=ltspc)
-            gl.xlabels_top = False
-            gl.ylabels_right = False 
+            gl.top_labels = False
+            gl.right_labels = False 
             gl.x_inline = False
             gl.y_inline = False
             
@@ -3060,12 +3063,12 @@ class RadarData(RadarConfig.RadarConfig):
                 gl.xlabel_style = {'size': 16, 'color': 'black'}
                 #ax.text(0.5,bur-0.15,'Longitude',fontsize=16,ha='center',va='bottom',rotation_mode='anchor',transform=ax.transAxes)
             else:
-                gl.xlabels_bottom = False
+                gl.bottom_labels = False
             if ylab:
                 gl.ylabel_style = {'size': 16, 'color': 'black'} #, 'rotation': 90}
                 #ax.text(lur-0.15,0.5,'Latitude',fontsize=16,ha='center',va='bottom',rotation_mode='anchor',rotation=90,transform=ax.transAxes)
             else:
-                gl.xlabels_left = False
+                gl.left_labels = False
                 gl.ylabel_style = {'size': 0}
                 
             #newax = fig.add_axes(ax.get_position(), frameon=False)

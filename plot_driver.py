@@ -892,20 +892,6 @@ def make_single_pplots(rdat,config,y=None):
         else:
             fig, ax = rdat.cfad_multiplot(varlist=allvars,z_resolution=config['z_resolution'],cs_over=cs_over)
         
-        nvars=0
-        for var in allvars:
-            if var in rdat.data.variables.keys():
-                nvars+=1
-        
-        if nvars <=6:
-            yof = 0.01
-        else:
-            yof = -0.02
-        yof = -0.01
-        xof = 0.01
-        
-        label_subplots(fig,yoff=yof,xoff=xof,size=16,nlabels=nvars,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
-
         if config['ptype'].startswith('mp4'):
             plt.savefig('{d}{p}_CFAD_{t1:%Y%m%d_%H%M%S}-{t2:%Y%m%d_%H%M%S}.png'.format(d=outdir,p=rdat.exper,t1=rdat.date[0],t2=rdat.date[-1]),dpi=400,bbox_inches='tight')
         else: 
