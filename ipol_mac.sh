@@ -69,9 +69,9 @@ else
 fi
 
 station=$(basename $raddir)
-path2specs=$(realpath $raddir/../../../radar_specs/${station}_specs.txt)
-latcen=$(cat $path2specs | grep "latitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
-loncen=$(cat $path2specs | grep "longitude =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+path2specs=$(realpath $raddir/../../${station}_specs.txt)
+latcen=$(cat $path2specs | grep "ref_lat =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+loncen=$(cat $path2specs | grep "ref_lon =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 minelev=$(cat $path2specs | grep "min_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 maxelev=$(cat $path2specs | grep "max_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 band=$(cat $path2specs | grep "frequency_band =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
