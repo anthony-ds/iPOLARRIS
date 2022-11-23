@@ -27,6 +27,9 @@ from skewPy import SkewT
 import re
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def fix_my_data(ds):
     return(ds.drop(['VTZCS','CVECS']))
