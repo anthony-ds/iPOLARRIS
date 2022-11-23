@@ -212,7 +212,7 @@ else
 
     done
     for file in ${sndfiles[@]}; do
-        echo $file
+        echo $(basename $file)
         echo $file >> $configdir/$tfile
     done
 
