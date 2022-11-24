@@ -76,6 +76,12 @@ minelev=$(cat $path2specs | grep "min_elev_angle =" | cut -d '=' -f2 | cut -d ';
 maxelev=$(cat $path2specs | grep "max_elev_angle =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 band=$(cat $path2specs | grep "frequency_band =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 agency=$(cat $path2specs | grep "agency =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs | tr '[:upper:]' '[:lower:]')
+map_proj=$(cat $path2specs | grep "map_proj =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+truelat1=$(cat $path2specs | grep "truelat1 =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+truelat2=$(cat $path2specs | grep "truelat2 =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+stand_lon=$(cat $path2specs | grep "stand_lon =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+dx=$(cat $path2specs | grep "dx_km =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
+dy=$(cat $path2specs | grep "dy_km =" | cut -d '=' -f2 | cut -d ';' -f1 | xargs)
 
 echo
 echo Selecting radar files for analysis in range ${stt[0]} to ${edt[${#edt[@]}-1]}...
@@ -392,6 +398,12 @@ if [ -z $simdir ]; then
     sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" $configdir/$configfile
     sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" $configdir/$configfile
     sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" $configdir/$configfile
+    sed -i '' "s/.*map_proj ==.*/map_proj == $map_proj == # Radar\/WRF map projection/g" $configdir/$configfile
+    sed -i '' "s/.*truelat1 ==.*/truelat1 == $truelat1 == # First true latitude/g" $configdir/$configfile
+    sed -i '' "s/.*truelat2 ==.*/truelat2 == $truelat2 == # Second true latitude/g" $configdir/$configfile
+    sed -i '' "s/.*stand_lon ==.*/stand_lon == $stand_lon == # Standard longitude/g" $configdir/$configfile
+    sed -i '' "s/.*dx ==.*/dx == $dx == # x-grid spacing/g" $configdir/$configfile
+    sed -i '' "s/.*dy ==.*/dy == $dy == # y-grid spacing/g" $configdir/$configfile
 
     echo Running iPOLARRIS...
     sleep 3
@@ -431,6 +443,12 @@ else
     sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" $configdir/$configfile
     sed -i '' "s/.*snd_on ==.*/snd_on == $snd_on == # Sounding temperature on/g" $configdir/$configfile
     sed -i '' "s/.*wrft_on ==.*/wrft_on == $wrft_on == # WRF temperature on/g" $configdir/$configfile
+    sed -i '' "s/.*map_proj ==.*/map_proj == $map_proj == # Radar\/WRF map projection/g" $configdir/$configfile
+    sed -i '' "s/.*truelat1 ==.*/truelat1 == $truelat1 == # First true latitude/g" $configdir/$configfile
+    sed -i '' "s/.*truelat2 ==.*/truelat2 == $truelat2 == # Second true latitude/g" $configdir/$configfile
+    sed -i '' "s/.*stand_lon ==.*/stand_lon == $stand_lon == # Standard longitude/g" $configdir/$configfile
+    sed -i '' "s/.*dx ==.*/dx == $dx == # x-grid spacing/g" $configdir/$configfile
+    sed -i '' "s/.*dy ==.*/dy == $dy == # y-grid spacing/g" $configdir/$configfile
 
     for ((ii=0;ii<${#allmps[@]};ii++)); do
         
@@ -458,6 +476,12 @@ else
         sed -i '' "s/.*dd_on ==.*/dd_on == $dd_on == # Doppler gridded velocity on/g" ${configfiles2[ii]}
         sed -i '' "s/.*snd_on ==.*/snd_on == False == # Sounding temperature on/g" ${configfiles2[ii]}
         sed -i '' "s/.*wrft_on ==.*/wrft_on == True == # WRF temperature on/g" ${configfiles2[ii]}
+        sed -i '' "s/.*map_proj ==.*/map_proj == $map_proj == # Radar\/WRF map projection/g" ${configfiles2[ii]}
+        sed -i '' "s/.*truelat1 ==.*/truelat1 == $truelat1 == # First true latitude/g" ${configfiles2[ii]}
+        sed -i '' "s/.*truelat2 ==.*/truelat2 == $truelat2 == # Second true latitude/g" ${configfiles2[ii]}
+        sed -i '' "s/.*stand_lon ==.*/stand_lon == $stand_lon == # Standard longitude/g" ${configfiles2[ii]}
+        sed -i '' "s/.*dx ==.*/dx == $dx == # x-grid spacing/g" ${configfiles2[ii]}
+        sed -i '' "s/.*dy ==.*/dy == $dy == # y-grid spacing/g" ${configfiles2[ii]}
 
     done
 
