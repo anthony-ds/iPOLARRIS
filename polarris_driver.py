@@ -494,7 +494,13 @@ def polarris_driver(configfile):
                 rvar['T'] = tvar['t_air']-273.15
         else:
             rvar['t_air'].values = deepcopy(rvar['t_air'])-273.15
- 
+        
+        hnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
+        for ii in range(len(rvar['z'])):
+            hnew[:,ii,:,:] = rvar['z'][ii]
+        newh = xr.DataArray(hnew, dims=['d','z','y','x'], name='z3d')
+        rvar['z3d'] = newh
+
     elif config['snd_on']:
 
         print('In your config file, snd_on is set to True.')
@@ -505,6 +511,9 @@ def polarris_driver(configfile):
             hnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
             for ii in range(len(rvar['z'])):
                 hnew[:,ii,:,:] = rvar['z'][ii]
+            newh = xr.DataArray(hnew, dims=['d','z','y','x'], name='z3d')
+            rvar['z3d'] = newh
+
             tnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
             tnew.fill(np.nan)
             for jj in range(len(tm)):
