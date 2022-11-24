@@ -10,7 +10,7 @@ import pyart
 
 class RadarConfig(object):
    
-    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', u='u', v='v',rr='RR', w='w',qc='qc',qr='qr',qg='qg',qh='qh',qi='qi',qs='qs',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,rr_on=False,hid_on=True,hid_cats = 'summer'):
+    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', u='u', v='v',rr='RR', w='w',qc='qc',qr='qr',qg='qg',qh='qh',qi='qi',qs='qs',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,rr_on=False,hid_on=True,hid_cats = 'summer'):
         
         # ******** first the polarimetric stuff *************
        
