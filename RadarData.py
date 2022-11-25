@@ -52,9 +52,9 @@ np.set_printoptions(threshold=sys.maxsize)
 
 class RadarData(RadarConfig.RadarConfig): 
 
-    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', u='u', v='v', w='w', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',rtype='obs',rsrc='nexrad',lat_r=None,lon_r=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,dd_on=False,rr_on=False,hid_on=True,hid_cats='summer'): 
+    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', u='u', v='v', w='w', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',rtype='obs',rsrc='nexrad',lat_r=None,lon_r=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,dd_on=False,rr_on=False,hid_on=True,hid_cats='summer'): 
 
-        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, u=u, v=v, w=w,rr=rr,vr=vr,exper=exper,rtype=rtype,rsrc=rsrc,lat=lat,lon=lon,tm = times,color_blind=color_blind,dd_on=dd_on,hid_on=hid_on,rr_on=rr_on,hid_cats=hid_cats)
+        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, z3d=z3d, u=u, v=v, w=w,rr=rr,vr=vr,exper=exper,rtype=rtype,rsrc=rsrc,lat=lat,lon=lon,tm = times,color_blind=color_blind,dd_on=dd_on,hid_on=hid_on,rr_on=rr_on,hid_cats=hid_cats)
 
         # ********** initialize the data *********************
 #        self.data = {} 
@@ -989,39 +989,59 @@ class RadarData(RadarConfig.RadarConfig):
         return fig, ax
 
 
-    def rhi(self, var, y=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
-        
+    def rhi(self, var, y=None, lls=None, proj=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
+
+        from wrf import WrfProj, CoordPair
+
         if ts is not None: 
             try:
                 tmind = np.where(np.array(self.date) == ts)[0][0]
             except IndexError as e:
                 tmind = np.where(np.array(self.date) == ts)[0]
-                
-        if not xlim:
-            xmin, xmax = np.floor(self.data[self.x_name].values.min()), np.ceil(self.data[self.x_name].values.max())
+        
+        if not latlon:
+            
+            if not xlim:
+                xmin, xmax = np.floor(self.data[self.x_name].values.min()), np.ceil(self.data[self.x_name].values.max())
+            else:
+                xmin, xmax = xlim[0], xlim[1]
+            if not zmax:
+                zmax = self.data[self.z_name].values.max()
+
+            if 'y' in self.data[self.x_name]:
+                xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax),y=slice(ymin,ymax))
+            else:
+                xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax))
+
+            zdataset = self.data[self.z_name].sel(z=slice(0,zmax))
+
+            if 'd' in xdataset:
+                xdat = np.squeeze(xdataset.sel(d=tmind).values)
+                zdat = np.squeeze(zdataset.sel(d=tmind).values)
+            else:
+                xdat = np.squeeze(xdataset.values)
+                zdat = np.squeeze(zdataset.values)
+            
+            dataset = self.data[var].sel(z=slice(0,zmax),y=y,x=slice(xmin,xmax))
+            data = np.squeeze(dataset.sel(d=tmind).values)
+        
         else:
-            xmin, xmax = xlim[0], xlim[1]
-        if not zmax:
-            zmax = self.data[self.z_name].values.max()
+            
+            hgt = self.data['z3d'].sel(d=tmind)
+            vardata = self.data[var].sel(d=tmind)
+            ll_lat = self.data[self.lat_name].values[(0,0)]
+            ll_lon = self.data[self.lon_name].values[(0,0)]
+            if proj[4] % 1000 != 0:
+                proj[4] = proj[4]*1000.0
+                proj[5] = proj[5]*1000.0
+            
+            xdat,zdat,coords,data = self.cs_crossvar(hgt,vardata,1 if self.names_uc[var].startswith('REF') else 0,WrfProj(map_proj=proj[0],truelat1=proj[1],truelat2=proj[2],stand_lon=proj[3],dx=proj[4],dy=proj[5]),CoordPair(lat=ll_lat,lon=ll_lon),CoordPair(lat=lls[0],lon=lls[1]),CoordPair(lat=lls[2],lon=lls[3]))
+            topind = np.argmax(zdat >= zmax)
+            zdat = zdat[0:topind]
+            data = data[0:topind,:]
 
-        if 'y' in self.data[self.x_name]:
-            xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax),y=slice(ymin,ymax))
-        else:
-            xdataset = self.data[self.x_name].sel(x=slice(xmin,xmax))
-
-        zdataset = self.data[self.z_name].sel(z=slice(0,zmax))
-
-        if 'd' in xdataset:
-            xdat = np.squeeze(xdataset.sel(d=tmind).values)
-            zdat = np.squeeze(zdataset.sel(d=tmind).values)
-        else:
-            xdat = np.squeeze(xdataset.values)
-            zdat = np.squeeze(zdataset.values)
-
-        dataset = self.data[var].sel(z=slice(0,zmax),y=y,x=slice(xmin,xmax))
-        data = np.squeeze(dataset.sel(d=tmind).values)
         data = np.ma.masked_where(~np.isfinite(data),data)
-           
+
         if var.startswith('HID'):
             data = np.ma.masked_where(data < 1,data)
         elif var.startswith('q'):
@@ -1047,19 +1067,20 @@ class RadarData(RadarConfig.RadarConfig):
                 vmin = np.nanmin(dat), vmax = np.nanmax(dat),cmap = plt.cm.gist_ncar, **kwargs)
         
         ####### plotting limits getting set here ######
-        if self.x_name == 'longitude':
+        if latlon:
+
             if labels:
-                ax.set_xlabel('Distance E of Radar (km)', fontsize=lblsz)
+                self.cs_xaxis_latlon(ax,coords,lblsz)
                 ax.set_ylabel('Altitude (km MSL)', fontsize=lblsz)
-                ax.set_xlim([xmin,xmax])
                 ax.tick_params(axis='both', which='major', labelsize=lblsz)
             else:
                 if xlab:
-                    ax.set_xlabel('Distance E of Radar (km)', fontsize=lblsz)
+                    self.cs_xaxis_latlon(ax,coords,lblsz)
                     ax.tick_params(axis='x', which='major', labelsize=lblsz)
                 else:
                     ax.set_xticklabels([])
                     ax.xaxis.set_ticks_position('none')
+                
                 if ylab:
                     ax.set_ylabel('Altitude (km MSL)', fontsize=lblsz)
                     ax.tick_params(axis='y', which='major', labelsize=lblsz)
@@ -1068,6 +1089,7 @@ class RadarData(RadarConfig.RadarConfig):
                     ax.yaxis.set_ticks_position('none')
         
         else:
+        
             if labels:
                 ax.set_xlabel('Distance E of radar (km)',fontsize=lblsz)
                 ax.set_ylabel('Altitude (km MSL)',fontsize=lblsz)
@@ -1086,8 +1108,9 @@ class RadarData(RadarConfig.RadarConfig):
                     ax.set_yticklabels([])
                     ax.yaxis.set_ticks_position('none')
  
-        ax.set_xlim([xmin,xmax])
-        ax.set_xticks(np.linspace(xmin,xmax,5))
+            ax.set_xlim([xmin,xmax])
+            ax.set_xticks(np.linspace(xmin,xmax,5))
+        
         ax.set_ylim([0,zmax]) 
         ax.set_yticks(np.linspace(0,zmax,6))
         ax.grid(color='grey', linestyle='-', linewidth=1)
@@ -3117,6 +3140,7 @@ class RadarData(RadarConfig.RadarConfig):
 
         return cbt
 
+
     def label_subplots(self,fig,nlabs=1,xoff=0.01,yoff=-0.01,labels=None,**kwargs):
         
         if labels is None: 
@@ -3129,3 +3153,44 @@ class RadarData(RadarConfig.RadarConfig):
             xmin, ymax = xbox.xmin, xbox.ymax
         # this is the position I want
             fig.text(xmin+xoff, ymax+yoff, labels[fa],**kwargs) #,transform=figaxes[fa].transAxes)
+
+
+    def cs_crossvar(self, htvar, plotvar, dbz_yn, projection, ll_point, cross_start, cross_end):
+
+        import numpy as np
+        from wrf import vertcross, to_np
+
+        if dbz_yn: plotvar = 10**(plotvar/10.)
+        crossvar = vertcross(field3d=plotvar, vert=htvar, levels=htvar.values[:,0,0], projection=projection, ll_point=ll_point, start_point=cross_start, end_point=cross_end, latlon=True, meta=True)
+        if dbz_yn: crossvar = 10.0 * np.log10(crossvar)
+        newcrossvar = np.ma.copy(to_np(crossvar))
+        '''
+        for kk in range(newcrossvar.shape[(-1)]):
+            column_vals = newcrossvar[:, kk]
+            if first_idx = int(np.transpose((column_vals > -200).nonzero())[0])
+            newcrossvar[0:first_idx, kk] = newcrossvar[(first_idx, kk)]
+        '''
+        xcrossvar = np.arange(0, crossvar.shape[(-1)], 1)
+        ycrossvar = to_np(crossvar.coords['vertical'])
+        coord_pairs = to_np(crossvar.coords['xy_loc'])
+        for ii in range(0,len(coord_pairs)):
+            if cross_start.lat == cross_end.lat: coord_pairs[ii].lat = cross_start.lat
+            if cross_start.lon == cross_end.lon: coord_pairs[ii].lon = cross_start.lon
+
+        return xcrossvar, ycrossvar, coord_pairs, newcrossvar
+
+
+    def cs_xaxis_latlon(self, ax, coord_pairs, lblsz):
+
+        import numpy as np
+
+        strpairs = [pair.latlon_str() for pair in coord_pairs]
+        latletter = ['S' if pair.startswith('-') else 'N' for pair in strpairs]
+        lonletter = ['W' if pair[pair.find(',')+2:].startswith('-') else 'E' for pair in strpairs]
+
+        x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$'+latl+', {:.1f}$\degree$'+lonl).replace("-","") for pair,latl,lonl in zip(coord_pairs,latletter,lonletter)]
+        #x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$,\n{:.1f}$\degree$') for pair in coord_pairs]
+        x_ticks = np.arange(coord_pairs.shape[0])
+        ax.set_xticks(x_ticks[int(np.floor(len(x_ticks)/6.0))::int(np.floor(len(x_ticks)/3.0))])
+        ax.set_xticklabels((x_labels[int(np.floor(len(x_ticks)/6.0))::int(np.floor(len(x_ticks)/3.0))]), fontsize=lblsz-2)
+        ax.set_xlabel('Transect Lat/Lon', fontsize=lblsz)

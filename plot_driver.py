@@ -1186,12 +1186,12 @@ def make_single_pplots(rdat,config,y=None):
         outdir = outpath+'rhi_multi/'
         os.makedirs(outdir,exist_ok=True)
 
-        if not config['y'] == '': yspan = list([config['y']])
-        else: yspan = rdat.data[rdat.y_name].values[0::50]
+        if not config['y'] == '': yvals = list([config['y']])
+        else: yvals = rdat.data[rdat.y_name].values[0::50]
 
         allvars = list(filter(None,rdat.rhi_vars))
 
-        for y in yspan:
+        for y in yvals:
 
             print('\ny = '+str(y))
 
@@ -1227,12 +1227,27 @@ def make_single_pplots(rdat,config,y=None):
 
     if config['rhi_individ']:
 
-        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating individual RHIs for various polarimetric vars.')
-        print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time.\n')
+        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... plotting individual RHIs for various polarimetric vars by time.')
+        if not config['latlon']:
+            if not config['y'] == '': yvals = list(eval(str([config['y']])))
+            else: yvals = rdat.data[rdat.y_name].values[0::50]
+            xsec = yvals
+        else:
+            islat1=len(list(eval(str([config['lat1']]))))
+            islon1=len(list(eval(str([config['lon1']]))))
+            islat2=len(list(eval(str([config['lat2']]))))
+            islon2=len(list(eval(str([config['lon2']]))))
+            if islat1 > 0 and islon1 > 0 and islat2 > 0 and islon2 > 0:
+                lat1 = [float(x) for x in list(eval(str([config['lat1']])))]
+                lon1 = [float(x) for x in list(eval(str([config['lon1']])))]
+                lat2 = [float(x) for x in list(eval(str([config['lat2']])))]
+                lon2 = [float(x) for x in list(eval(str([config['lon2']])))]
+                xsec = lat1
+            else:
+                print('Please specify at least TWO lat-lon pairs.')
+                print('Exiting gracefully.')
+                sys.exit()
 
-        if not config['y'] == '': yspan = list(eval(str([config['y']])))
-        else: yspan = rdat.data[rdat.y_name].values[0::50]
-    
         allvars = list(filter(None,rdat.rhi_vars))
 
         for i,v in enumerate(allvars):
@@ -1245,9 +1260,12 @@ def make_single_pplots(rdat,config,y=None):
                 outdir = outpath+'rhi_individ/'+rdat.names_uc[v]+'/'
                 os.makedirs(outdir,exist_ok=True)
         
-                for y in yspan:
+                for hh in range(len(xsec)):
 
-                    print('\ny = '+str(y))
+                    if not config['latlon']: print('\ny = '+str(xsec[hh]))
+                    else:
+                        brackets=['('+str(lon1[hh])+','+str(lat1[hh])+')','('+str(lon2[hh])+','+str(lat2[hh])+')']
+                        print('\n'+brackets[0]+' ==> '+brackets[1])
 
                     for ii in range(len(tms)):
                         ts = tms[ii]
@@ -1255,19 +1273,33 @@ def make_single_pplots(rdat,config,y=None):
                   
                         if v.startswith('HID'): cbar = 2
                         else: cbar = 1
-                        
-                        fig, ax = rdat.rhi(v,ts=ts,y=y,res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'],latlon=config['latlon'])
+                       
+                        if not config['latlon']:
+                            fig, ax = rdat.rhi(v,ts=ts,y=xsec[hh],res=config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'],latlon=config['latlon'])
+                        else:
+                            lls = [lat1[hh],lon1[hh],lat2[hh],lon2[hh]]
+                            proj = [1,float(config['truelat1']),float(config['truelat2']),float(config['stand_lon']),float(config['dx']),float(config['dy'])]
+                            fig, ax = rdat.rhi(v,ts=ts,lls=lls,proj=proj,res=config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'],latlon=config['latlon']) 
                         #fig, ax = rdat.rhi(v,ts=ts,y=config['y'],vectors=eval(config['rvectors'])[i],res = config['rhi_vectres'],xlim=config['xlim'],cbar=cbar,zmax=config['zmax'])
                         
                         ax.text(0, 1, '{e} {r}'.format(e=rdat.exper,r=rdat.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
                         ax.text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
-                        ax.text(0.99, 0.99, 'y = {a} km'.format(a=y), horizontalalignment='right',verticalalignment='top', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+                        if not config['latlon']:
+                            ax.text(0.99, 0.99, 'y = {a} km'.format(a=xsec[hh]), horizontalalignment='right',verticalalignment='top', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
                         
                         if not config['ptype'].startswith('mp4'):
-                            plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                            if not config['latlon']:
+                                plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                            else:
+                                plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{m}-{n}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,t=ts,v=rdat.names_uc[v],m=brackets[0],n=brackets[1]),dpi=400,bbox_inches='tight')
+                                
                         else:
                             if len(rdat.date) < 6:
-                                plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                                if not config['latlon']:
+                                    plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                                else:
+                                    plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{m}-{n}.png'.format(i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v],m=brackets[0],n=brackets[1]),dpi=400,bbox_inches='tight')
+                                    
                             else:
                                 plt.savefig(outdir+'/fig'+str(ii).zfill(3)+'.png',dpi=400,bbox_inches='tight')
                         
@@ -1276,9 +1308,12 @@ def make_single_pplots(rdat,config,y=None):
                     if config['ptype'].startswith('mp4') and len(rdat.date) >= 6:
                         st = rdat.date[0].strftime('%Y%m%d_%H%M%S')
                         en = rdat.date[-1].strftime('%Y%m%d_%H%M%S')
-
-                        os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=y))
-
+                        
+                        if not config['latlon']:
+                            os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_rhi_{t1}-{t2}_{h}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,h=y))
+                        else:
+                            os.system('ffmpeg -hide_banner -loglevel error -nostdin -y -r 1 -i '+outdir+'/fig%03d.png -c:v libx264 -r '+str(len(np.array(rdat.date)))+' -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" '+'{i}{e}_{v}_individ_rhi_{t1}-{t2}_{m}-{n}.mp4'.format(p=config['ptype'],e=rdat.exper,i=outdir,v=rdat.names_uc[v],t1=st,t2=en,m=brackets[0],n=brackets[1]))
+                            
             print('')
 
         print('Done! Saved to '+outdir)
@@ -1341,12 +1376,12 @@ def make_single_pplots(rdat,config,y=None):
         outdir = outpath+'q_rhi_multi/'
         os.makedirs(outdir,exist_ok=True)
  
-        if not config['y'] == '': yspan = list([config['y']])
-        else: yspan = rdat.data[rdat.y_name].values[0::50]
+        if not config['y'] == '': yvals = list([config['y']])
+        else: yvals = rdat.data[rdat.y_name].values[0::50]
 
         allvars = list(filter(None,rdat.rhi_vars))
 
-        for y in yspan:
+        for y in yvals:
 
             print('\ny = '+str(y))
 
