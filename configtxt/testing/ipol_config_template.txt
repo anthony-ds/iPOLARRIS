@@ -4,10 +4,12 @@
 
 type ==  == # Type of input data: 'obs' OR 'wrf' (obs + simulated)
 data ==  == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'
+ptype ==  == # Output figure file extenstion (i.e. png, jpg, mp4, ...)
 
 cb_friendly	== True == # Use color-blindness palette for output (i.e. reflectivity)
 
 latlon == True == # Output plots on Cartopy basemap if True
+
 xlim ==  == #lat / lon zoom for CAPPIS
 #xlim == [-127,-123] ==
 #xlim == [-150,150] == #lat / lon zoom for CAPPIS
@@ -15,6 +17,11 @@ ylim ==  == #lat / lon zoom for CAPPIS
 #ylim == [45,49] ==
 #ylim == [-150,150] == #lat / lon zoom for CAPPIS
 zmax == 10 ==
+
+lat1 == 46.5 == # First latitudes
+lon1 == -125.0 == # First longitudes
+lat2 == 47.5 == # Second latitudes
+lon2 == -123.5 == # Second longitudes
 
 y == 0.5 == # Lat of the y cross-section for RHI
 #z == 0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0 == # Height of the CAPPIs
@@ -30,13 +37,18 @@ dfiles ==  == # Location of dual-Doppler files
 image_dir ==  == # Output figure directory
 rr_dir ==  == # Output rain rate netcdf directory
 
-ptype ==  == # Output figure file extenstion (i.e. png, jpg, mp4, ...)
 exper ==  == # Radar location
 lat ==  == # Latitude of the radar station
 lon ==  == # Longitude of the radar station
 mincosthresh ==  == # Min. threshold for simulated cone of silence
 maxcosthresh ==  == # Max. threshold for simulated cone of silence
 band ==  == # Radar band: X, C OR S. Note: needs to be capital letter.
+dx ==  == # x-grid spacing
+dy ==  == # y-grid spacing
+map_proj ==  == # Radar/WRF map projection
+truelat1 ==  == # First true latitude
+truelat2 ==  == # Second true latitude
+stand_lon ==  == # Standard longitude
 
 snd_on ==  == # Set this to use UWYO soundings for temperature
 wrft_on ==  == # Set this to loop through wrfouts for temperature
@@ -68,19 +80,19 @@ percentiles_txt		== False	    == # 10)
 # Plots created in plot_driver.py
 pol_compare		    == False	    == # 13) Set to True to plot 4-panel of CFADs of Z, ZDR, KDP and W
 hist_multi		    == False	    == # 15) Set to True to plot 4-panel of comparison figures between various polarimetric vars
-cfad_multi		    == True	    == # 13) Set to True to plot x-panel of CFADs for x polarimetric variables
+cfad_multi		    == False	    == # 13) Set to True to plot x-panel of CFADs for x polarimetric variables
 cfad_individ		== False 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
 cfad_compare		== False 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
 hid_prof		    == False	    == # 17) Set to True to plot vertical profile of grouped HID species with height
 up_width		    == False	    == # 18) Set to True to plot vertical profile of updraft width with temperature.
-cappi_multi		    == True	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
+cappi_multi		    == False	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
 cappi_individ	    == False	    == # 20) Set to True to plot a CAPPI for x individual polarimetric variables at some altitude z (set z below; 1 figure per timestep)
-rhi_multi		    == True	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
-rhi_individ		    == False	    == # 22) Set to True to plot an RHI for x individual polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
+rhi_multi		    == False	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
+rhi_individ		    == True	    == # 22) Set to True to plot an RHI for x individual polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
 
 # Model Only
 q_cappi_multi		    == False	== # FK) Make cappi cross section of mixing ratios. change parameters in plot_driver.py (only valid for model)
-q_rhi_multi			    == True	== # FL) Make rhis of the mixing ratios (only valid for model)
+q_rhi_multi			    == False	== # FL) Make rhis of the mixing ratios (only valid for model)
 
 refthresh == -20. ==#Threshold for good data
 wthresh == 5.                         ==#Threshold for 'updraft' statistics.
