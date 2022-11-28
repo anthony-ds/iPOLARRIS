@@ -1289,7 +1289,7 @@ def make_single_pplots(rdat,config,y=None):
                         
                         if not config['ptype'].startswith('mp4'):
                             if not config['latlon']:
-                                plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                                plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=xsec[hh],t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
                             else:
                                 plt.savefig('{i}{e}_{v}_individ_rhi_{t:%Y%m%d_%H%M%S}_{m}-{n}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,t=ts,v=rdat.names_uc[v],m=brackets[0],n=brackets[1]),dpi=400,bbox_inches='tight')
                                 
