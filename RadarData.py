@@ -1034,7 +1034,7 @@ class RadarData(RadarConfig.RadarConfig):
             if proj[4] % 1000 != 0:
                 proj[4] = proj[4]*1000.0
                 proj[5] = proj[5]*1000.0
-            
+                
             xdat,zdat,coords,data = self.cs_crossvar(hgt,vardata,1 if self.names_uc[var].startswith('REF') else 0,WrfProj(map_proj=proj[0],truelat1=proj[1],truelat2=proj[2],stand_lon=proj[3],dx=proj[4],dy=proj[5]),CoordPair(lat=ll_lat,lon=ll_lon),CoordPair(lat=lls[0],lon=lls[1]),CoordPair(lat=lls[2],lon=lls[3]))
             topind = np.argmax(zdat >= zmax)
             zdat = zdat[0:topind]

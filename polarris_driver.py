@@ -305,8 +305,37 @@ def polarris_driver(configfile):
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim,combine='by_coords')
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim)
 
+    
+    if config['data'].startswith('nexrad'):
+      
+        rvar = rvar.rename({'x0':'x'})
+        rvar = rvar.rename({'y0':'y'}) 
+        rvar = rvar.rename({'z0':'z'})
 
-    if config['type'].startswith('wrf'):
+    elif config['type'].startswith('wrf'):
+       
+        currx = deepcopy(rvar['x'].values)
+        newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
+        rvar['x'] = newx
+       
+        curry = deepcopy(rvar['y'].values)
+        newy = xr.DataArray(curry-np.mean(curry), dims=['y'], name='y')
+        rvar['y'] = newy
+
+        if 'd' in rvar['hgt'].dims: currz = rvar['hgt'].values[0,:]
+        else: currz = rvar['hgt'].values
+        newz = xr.DataArray(currz, dims=['z'], name='z')
+        rvar['z'] = newz
+
+        currlat = deepcopy(np.squeeze(rvar['latitude'].values[0,:,:]))
+        newlat = xr.DataArray(currlat, dims=['y','x'], name='lat')
+        rvar['lat'] = newlat
+
+        currlon = deepcopy(np.squeeze(rvar['longitude'].values[0,:,:]))
+        newlon = xr.DataArray(currlon, dims=['y','x'], name='lon')
+        rvar['lon'] = newlon
+        
+        rvar = rvar.set_coords(['lat','lon'])
         
         refvals = deepcopy(rvar['zhh01'].values)
         refvals = np.where(refvals < float(config['refthresh']), np.nan, refvals)
@@ -316,7 +345,7 @@ def polarris_driver(configfile):
         
         newref = xr.DataArray(refvals, dims=['d','z','y','x'], name='zhh01')
         rvar['zhh01'] = newref
-       
+        
         parsers = ['zdr01','kdp01','rhohv01','vrad01']
         for v in parsers:
             newvals = deepcopy(rvar[v].values)
@@ -330,12 +359,17 @@ def polarris_driver(configfile):
         for v in qvars:
             qvals = deepcopy(rvar[v].values)
             qvals = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, qvals)
-            newq = xr.DataArray(qvals, dims=['d','z','y','x'], name=v)
+            newq = xr.DataArray(qvals, dims=['d','z','y','x'], name=v, coords=newcoords)
             rvar[v] = newq
   
+    
     # =====
     # (3) Get datetime objects from radar file names.
     # =====
+
+    #if not config['type'].startswith('wrf'): print(rvar['REF'].coords['lat0'])
+    #else: print(rvar['zhh01'].coords['lat'])
+    #input()
 
     tm = []
     for d in rfiles:
@@ -349,24 +383,7 @@ def polarris_driver(configfile):
         date=datetime.datetime.strptime(radcdate,dformat)
         tm.append(date)
 
-    if config['data'].startswith('nexrad'):
-        rvar = rvar.rename({'x0':'x'})
-        rvar = rvar.rename({'y0':'y'}) 
-        rvar = rvar.rename({'z0':'z'})
-    elif config['type'].startswith('wrf'):
-        currx = deepcopy(rvar['x'].values)
-        newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
-        rvar['x'] = newx
-        
-        curry = deepcopy(rvar['y'].values)
-        newy = xr.DataArray(curry-np.mean(curry), dims=['y'], name='y')
-        rvar['y'] = newy
-
-        if 'd' in rvar['hgt'].dims: hgt = rvar['hgt'].values[0,:]
-        else: hgt = rvar['hgt'].values
-        newz = xr.DataArray(hgt, coords={'z': hgt})
-        rvar['z'] = newz
-
+   
     if drop_vars:
         print("dropping extra variables for memory!")
         rvar= rvar.drop(['vrad03','vdop02','elev03','elev02','vdop03','vang02','vang03','vrad02','zhh02','zhh03','zdr02','zdr03','kdp02','kdp03','rhohv02','rhohv03'])
@@ -423,9 +440,9 @@ def polarris_driver(configfile):
             newy = xr.DataArray(curry-np.mean(curry), dims=['y'], name='y')
             dvar['y'] = newy
 
-            if 'd' in rvar['hgt'].dims: hgt = dvar['hgt'].values[0,:]
-            else: hgt = dvar['hgt'].values
-            newz = xr.DataArray(hgt, coords={'z': hgt})
+            if 'd' in rvar['hgt'].dims: currz = dvar['hgt'].values[0,:]
+            else: currz = dvar['hgt'].values
+            newz = xr.DataArray(currz, coords={'z': currz})
             dvar['z'] = newz
         
         unew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
