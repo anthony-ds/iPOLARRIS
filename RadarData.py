@@ -989,7 +989,7 @@ class RadarData(RadarConfig.RadarConfig):
         return fig, ax
 
 
-    def rhi(self, var, y=None, lls=None, proj=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
+    def rhi(self, var, y=None, lls=None, proj=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, skipline=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
 
         from wrf import WrfProj, CoordPair
 
@@ -1070,12 +1070,12 @@ class RadarData(RadarConfig.RadarConfig):
         if latlon:
 
             if labels:
-                self.cs_xaxis_latlon(ax,coords,lblsz)
+                self.cs_xaxis_latlon(ax,coords,lblsz,skipline=skipline)
                 ax.set_ylabel('Altitude (km MSL)', fontsize=lblsz)
                 ax.tick_params(axis='both', which='major', labelsize=lblsz)
             else:
                 if xlab:
-                    self.cs_xaxis_latlon(ax,coords,lblsz)
+                    self.cs_xaxis_latlon(ax,coords,lblsz,skipline=skipline)
                     ax.tick_params(axis='x', which='major', labelsize=lblsz)
                 else:
                     ax.set_xticklabels([])
@@ -1146,7 +1146,7 @@ class RadarData(RadarConfig.RadarConfig):
         return dummy, ax
 
     
-    def rhi_multiplot(self, y=0.5, xlim=[], zmax=[], ts=None, res = 2.0, varlist=None, vectors=None, latlon=False, **kwargs):
+    def rhi_multiplot(self, y=None, lls=None, proj=None, xlim=[], zmax=[], ts=None, res = 2.0, varlist=None, vectors=None, latlon=False, **kwargs):
     
         if ts is not None:
             try:
@@ -1200,7 +1200,7 @@ class RadarData(RadarConfig.RadarConfig):
             lspanels = [ncols*n for n in range(0,nrows)]
             ylabbool = True if i in lspanels else False
             #dummy = self.rhi(var, ts=ts, y=y, vectors=vect, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,lblsz=28,lblpad=28,**kwargs)
-            dummy = self.rhi(var, ts=ts, y=y, xlim=xlim, zmax=zmax, ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,latlon=latlon,**kwargs)
+            dummy = self.rhi(var,ts=ts,y=y,lls=lls,proj=proj,xlim=xlim,zmax=zmax,ax=axf[i],res=res,xlab=xlabbool,ylab=ylabbool,labels=False,skipline=True,latlon=latlon,**kwargs)
 
         self.label_subplots(fig,nlabs=nvars,size=16,horizontalalignment='left',verticalalignment='top',color='k',bbox=dict(facecolor='w', edgecolor='w', pad=2.0),weight='bold')
         
@@ -1208,7 +1208,8 @@ class RadarData(RadarConfig.RadarConfig):
 
         axf[ncols-1].text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
         
-        axf[ncols-1].text(0.99, 0.99, 'y = {a} km'.format(a=y), horizontalalignment='right',verticalalignment='top', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+        if not latlon:
+            axf[ncols-1].text(0.99, 0.99, 'y = {a} km'.format(a=xsec[hh]), horizontalalignment='right',verticalalignment='top', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
  
         return fig
 
@@ -3180,7 +3181,7 @@ class RadarData(RadarConfig.RadarConfig):
         return xcrossvar, ycrossvar, coord_pairs, newcrossvar
 
 
-    def cs_xaxis_latlon(self, ax, coord_pairs, lblsz):
+    def cs_xaxis_latlon(self, ax, coord_pairs, lblsz, skipline=False):
 
         import numpy as np
 
@@ -3188,7 +3189,10 @@ class RadarData(RadarConfig.RadarConfig):
         latletter = ['S' if pair.startswith('-') else 'N' for pair in strpairs]
         lonletter = ['W' if pair[pair.find(',')+2:].startswith('-') else 'E' for pair in strpairs]
 
-        x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$'+latl+', {:.1f}$\degree$'+lonl).replace("-","") for pair,latl,lonl in zip(coord_pairs,latletter,lonletter)]
+        if not skipline:
+            x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$'+latl+', {:.1f}$\degree$'+lonl).replace("-","") for pair,latl,lonl in zip(coord_pairs,latletter,lonletter)]
+        else:
+            x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$'+latl+',\n{:.1f}$\degree$'+lonl).replace("-","") for pair,latl,lonl in zip(coord_pairs,latletter,lonletter)]
         #x_labels = [pair.latlon_str(fmt='{:.1f}$\degree$,\n{:.1f}$\degree$') for pair in coord_pairs]
         x_ticks = np.arange(coord_pairs.shape[0])
         ax.set_xticks(x_ticks[int(np.floor(len(x_ticks)/6.0))::int(np.floor(len(x_ticks)/3.0))])

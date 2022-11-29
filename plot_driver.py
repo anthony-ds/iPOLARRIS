@@ -1180,35 +1180,61 @@ def make_single_pplots(rdat,config,y=None):
 
     if config['rhi_multi']:
 
-        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various polarimetric vars.')
-        print('Plotting RHIs at y = '+str(config['y'])+'km north of the radar by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.rhi_vars))])+'...')
- 
+        print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various polarimetric vars by time.')
+        if not config['latlon']:
+            if not config['y'] == '': yvals = list(eval(str([config['y']])))
+            else: yvals = rdat.data[rdat.y_name].values[0::50]
+            xsec = yvals
+        else:
+            islat1=len(list(eval(str([config['lat1']]))))
+            islon1=len(list(eval(str([config['lon1']]))))
+            islat2=len(list(eval(str([config['lat2']]))))
+            islon2=len(list(eval(str([config['lon2']]))))
+            if islat1 > 0 and islon1 > 0 and islat2 > 0 and islon2 > 0:
+                lat1 = [float(x) for x in list(eval(str([config['lat1']])))]
+                lon1 = [float(x) for x in list(eval(str([config['lon1']])))]
+                lat2 = [float(x) for x in list(eval(str([config['lat2']])))]
+                lon2 = [float(x) for x in list(eval(str([config['lon2']])))]
+                xsec = lat1
+            else:
+                print('Please specify at least TWO lat-lon pairs.')
+                print('Exiting gracefully.')
+                sys.exit()
+
         outdir = outpath+'rhi_multi/'
         os.makedirs(outdir,exist_ok=True)
 
-        if not config['y'] == '': yvals = list([config['y']])
-        else: yvals = rdat.data[rdat.y_name].values[0::50]
-
         allvars = list(filter(None,rdat.rhi_vars))
+        
+        for hh in range(len(xsec)):
 
-        for y in yvals:
-
-            print('\ny = '+str(y))
+            if not config['latlon']: print('\ny = '+str(xsec[hh]))
+            else:
+                brackets=['('+str(lon1[hh])+','+str(lat1[hh])+')','('+str(lon2[hh])+','+str(lat2[hh])+')']
+                print('\n'+brackets[0]+' ==> '+brackets[1])
 
             for ii in range(len(tms)):
                 ts = tms[ii]
                 print(ts)
 
-                if rdat.w_name is not None:
+                if not config['latlon']:
                     fig = rdat.rhi_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 else:
-                    fig = rdat.rhi_multiplot(ts=ts,y=y,xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
-                
+                    lls = [lat1[hh],lon1[hh],lat2[hh],lon2[hh]]
+                    proj = [1,float(config['truelat1']),float(config['truelat2']),float(config['stand_lon']),float(config['dx']),float(config['dy'])]
+                    fig = rdat.rhi_multiplot(ts=ts,lls=lls,proj=proj,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])   
+
                 if not config['ptype'].startswith('mp4'):
-                    plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=y,t=ts),dpi=400,bbox_inches='tight')
+                    if not config['latlon']:
+                        plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=xsec[hh],t=ts),dpi=400,bbox_inches='tight')
+                    else:
+                        plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{m}-{n}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,m=brackets[0],n=brackets[1],t=ts),dpi=400,bbox_inches='tight')
                 else: 
                     if len(rdat.date) < 6:
-                        plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=y,t=ts),dpi=400,bbox_inches='tight')
+                        if not config['latlon']:
+                            plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(i=outdir,e=rdat.exper,h=xsec[hh],t=ts),dpi=400,bbox_inches='tight')
+                        else: 
+                            plt.savefig('{i}{e}_multi_rhi_{t:%Y%m%d_%H%M%S}_{m}-{n}.png'.format(i=outdir,e=rdat.exper,m=brackets[0],n=brackets[1],t=ts),dpi=400,bbox_inches='tight')
                     else:
                         plt.savefig(outdir+'/fig'+str(ii).zfill(3)+'.png',dpi=400,bbox_inches='tight')
                 
