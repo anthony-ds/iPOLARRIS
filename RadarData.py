@@ -1000,7 +1000,6 @@ class RadarData(RadarConfig.RadarConfig):
                 tmind = np.where(np.array(self.date) == ts)[0]
         
         if not latlon:
-            
             if not xlim:
                 xmin, xmax = np.floor(self.data[self.x_name].values.min()), np.ceil(self.data[self.x_name].values.max())
             else:
@@ -1209,7 +1208,7 @@ class RadarData(RadarConfig.RadarConfig):
         axf[ncols-1].text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes) # (a) Top-left
         
         if not latlon:
-            axf[ncols-1].text(0.99, 0.99, 'y = {a} km'.format(a=xsec[hh]), horizontalalignment='right',verticalalignment='top', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+            axf[ncols-1].text(0.99, 0.99, 'y = {a} km'.format(a=y), horizontalalignment='right',verticalalignment='top', size=20, color='k', zorder=10, weight='bold', transform=axf[ncols-1].transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
  
         return fig
 
