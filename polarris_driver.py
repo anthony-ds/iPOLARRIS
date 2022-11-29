@@ -359,7 +359,7 @@ def polarris_driver(configfile):
         for v in qvars:
             qvals = deepcopy(rvar[v].values)
             qvals = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, qvals)
-            newq = xr.DataArray(qvals, dims=['d','z','y','x'], name=v, coords=newcoords)
+            newq = xr.DataArray(qvals, dims=['d','z','y','x'], name=v)
             rvar[v] = newq
   
     
