@@ -304,13 +304,23 @@ def polarris_driver(configfile):
         rvar = xr.open_mfdataset(rfiles,autoclose=True,combine='nested',concat_dim='d',preprocess=reduce_dim)
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim,combine='by_coords')
         #rvar = xr.open_mfdataset(rfiles,autoclose=True,concat_dim='d',preprocess=reduce_dim)
-
     
     if config['data'].startswith('nexrad'):
       
         rvar = rvar.rename({'x0':'x'})
         rvar = rvar.rename({'y0':'y'}) 
         rvar = rvar.rename({'z0':'z'})
+        
+        currlat = deepcopy(np.squeeze(rvar['lat0'].values))
+        newlat = xr.DataArray(currlat, dims=['y','x'], name='XLAT')
+        rvar['XLAT'] = newlat
+
+        currlon = deepcopy(np.squeeze(rvar['lon0'].values))
+        newlon = xr.DataArray(currlon, dims=['y','x'], name='XLONG')
+        rvar['XLONG'] = newlon
+       
+        rvar = rvar.reset_coords(['lat0','lon0'])
+        rvar = rvar.set_coords(['XLAT','XLONG'])
 
     elif config['type'].startswith('wrf'):
        
@@ -328,14 +338,14 @@ def polarris_driver(configfile):
         rvar['z'] = newz
 
         currlat = deepcopy(np.squeeze(rvar['latitude'].values[0,:,:]))
-        newlat = xr.DataArray(currlat, dims=['y','x'], name='lat')
-        rvar['lat'] = newlat
+        newlat = xr.DataArray(currlat, dims=['y','x'], name='XLAT')
+        rvar['XLAT'] = newlat
 
         currlon = deepcopy(np.squeeze(rvar['longitude'].values[0,:,:]))
-        newlon = xr.DataArray(currlon, dims=['y','x'], name='lon')
-        rvar['lon'] = newlon
+        newlon = xr.DataArray(currlon, dims=['y','x'], name='XLONG')
+        rvar['XLONG'] = newlon
         
-        rvar = rvar.set_coords(['lat','lon'])
+        rvar = rvar.set_coords(['XLAT','XLONG'])
         
         refvals = deepcopy(rvar['zhh01'].values)
         refvals = np.where(refvals < float(config['refthresh']), np.nan, refvals)
@@ -382,7 +392,6 @@ def polarris_driver(configfile):
             dformat = '%Y-%m-%d_%H:%M:%S'
         date=datetime.datetime.strptime(radcdate,dformat)
         tm.append(date)
-
    
     if drop_vars:
         print("dropping extra variables for memory!")
