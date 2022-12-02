@@ -433,13 +433,17 @@ def polarris_driver(configfile):
             print('Trying nested instead of concat_dim to read DD files')
             #dvar = xr.open_mfdataset(dfiles1,combine='nested',concat_dim='d')
             dvar = xr.open_mfdataset(dfiles1,autoclose=True,combine='nested',concat_dim='d',preprocess=reduce_dim)
-            nf= len(dfiles1)
 
         if config['type'].startswith('obs'):
-            currz = deepcopy(dvar['z'].values)
-            newz = xr.DataArray(0.001*currz, dims=['z'], name='z')
-            dvar['z'] = newz
-            
+ 
+            if 'eastward_wind' in dvar.keys(): dvar = dvar.rename({'eastward_wind':'u'})
+            if 'northward_wind' in dvar.keys(): dvar = dvar.rename({'northward_wind':'v'})
+            if 'upward_air_velocity' in dvar.keys(): dvar = dvar.rename({'upward_air_velocity':'w'})
+ 
+            if np.array_equal(dvar.variables['x'].values, 1000.0*rvar.variables['x'].values): dvar['x'] = rvar['x']
+            if np.array_equal(dvar.variables['y'].values, 1000.0*rvar.variables['y'].values): dvar['y'] = rvar['y']
+            if np.array_equal(dvar.variables['z'].values, 1000.0*rvar.variables['z'].values): dvar['z'] = rvar['z']
+
         elif config['type'].startswith('wrf'):
             currx = deepcopy(dvar['x'].values)
             newx = xr.DataArray(currx-np.mean(currx), dims=['x'], name='x')
@@ -451,7 +455,7 @@ def polarris_driver(configfile):
 
             if 'd' in rvar['hgt'].dims: currz = dvar['hgt'].values[0,:]
             else: currz = dvar['hgt'].values
-            newz = xr.DataArray(currz, coords={'z': currz})
+            newz = xr.DataArray(currz, dims=['z'], name='z')
             dvar['z'] = newz
         
         unew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
@@ -466,12 +470,6 @@ def polarris_driver(configfile):
         conv = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
         conv.fill(np.nan)
         
-        # NEW! MultiDop only works if distance values are in metres, not km. Need a condition to convert back to km so that doppler and radar distances are comparable.
-        if np.array_equal(dvar.variables['x'].values, 1000.0*rvar.variables['x'].values):
-            dvar['x'] = rvar['x']
-            dvar['y'] = rvar['y']
-            dvar['z'] = rvar['z']
-
         xsubmin = np.where(rvar.variables['x']==np.min(dvar.variables['x']))[0][0]
         xsubmax = np.where(rvar.variables['x']==np.max(dvar.variables['x']))[0][0]
 
@@ -489,7 +487,16 @@ def polarris_driver(configfile):
                     unew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['u'][i,:,:,:]
                     vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['v'][i,:,:,:]
                     wnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['w'][i,:,:,:]
-
+      
+        '''
+        test = dvar['w'].values
+        print(np.nanmin(test))
+        print(np.nanmax(test))      
+        input()
+        print(np.nanmin(wnew))
+        print(np.nanmax(wnew))
+        input()
+        '''
         if config['type'].startswith('wrf'):
             unew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, unew)
             unew = np.where(unew == -999.0, np.nan, unew)
