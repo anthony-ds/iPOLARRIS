@@ -163,12 +163,12 @@ if sys.argv[2:]:
      
                     if not zmax == '':
                         if v.startswith('HID'):
-                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,z_resolution=config['z_resolution'],cs_over=cs_over,zmax=zmax)
                         else:
                             cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(v,ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[v],z_resolution=config['z_resolution'],levels=1,zmax=zmax)
                     else:
                         if v.startswith('HID'):
-                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=cbbool,z_resolution=config['z_resolution'],cs_over=cs_over)
+                            rdatas[rk[jj]].plot_hid_cdf(ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,z_resolution=config['z_resolution'],cs_over=cs_over)
                         else:
                             cfad, hts, pc, fig0, ax0 = rdatas[rk[jj]].cfad_plot(v,ax=axf[jj],xlab=xlabbool,ylab=ylabbool,cbar=False,bins=rdatas[rk[jj]].cfbins[v],z_resolution=config['z_resolution'],levels=1)
                    
