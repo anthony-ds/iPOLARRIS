@@ -488,7 +488,6 @@ def polarris_driver(configfile):
                     vnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['v'][i,:,:,:]
                     wnew[q,zsubmin:zsubmax+1,ysubmin:ysubmax+1,xsubmin:xsubmax+1] = dvar['w'][i,:,:,:]
       
-        '''
         test = dvar['w'].values
         print(np.nanmin(test))
         print(np.nanmax(test))      
@@ -496,7 +495,7 @@ def polarris_driver(configfile):
         print(np.nanmin(wnew))
         print(np.nanmax(wnew))
         input()
-        '''
+        
         if config['type'].startswith('wrf'):
             unew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, unew)
             unew = np.where(unew == -999.0, np.nan, unew)

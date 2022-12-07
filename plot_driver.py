@@ -1218,7 +1218,7 @@ def make_single_pplots(rdat,config,y=None):
                 print(ts)
 
                 if not config['latlon']:
-                    fig = rdat.rhi_multiplot(ts=ts,y=y,vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
+                    fig = rdat.rhi_multiplot(ts=ts,y=xsec[hh],vectors=eval(config['rvectors']),res = config['rhi_vectres'],xlim=config['xlim'],zmax=config['zmax'],varlist=allvars,latlon=config['latlon'])
                 else:
                     lls = [lat1[hh],lon1[hh],lat2[hh],lon2[hh]]
                     proj = [1,float(config['truelat1']),float(config['truelat2']),float(config['stand_lon']),float(config['dx']),float(config['dy'])]

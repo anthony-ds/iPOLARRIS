@@ -992,7 +992,7 @@ class RadarData(RadarConfig.RadarConfig):
     def rhi(self, var, y=None, lls=None, proj=None, xlim=None, zmax=None, cbar=1, ts = None,varlist=None, ax=None, title_flag=False, vectors=None, cblabel=None, res=2.0,cbpad=0.03, labels=True, xlab=False, ylab=False, skipline=False, latlon=False, lblsz=16, lblpad=15, **kwargs):
 
         from wrf import WrfProj, CoordPair
-
+        
         if ts is not None: 
             try:
                 tmind = np.where(np.array(self.date) == ts)[0][0]
@@ -1369,7 +1369,7 @@ class RadarData(RadarConfig.RadarConfig):
             maxxs.append(np.nanmax(xdat_masked))
             minys.append(np.nanmin(ydat_masked))
             maxys.append(np.nanmax(ydat_masked))
-            
+
             if latlon:
             
                 minx = np.round(np.min(minxs)+0.1,1)
@@ -1379,10 +1379,10 @@ class RadarData(RadarConfig.RadarConfig):
 
             else:
                 
-                minx = np.floor(np.min(minxs),1)
-                maxx = np.ceil(np.abs(np.min(minxs)),1)
-                miny = np.floor(np.min(minys),1)
-                maxy = np.ceil(np.max(maxys),1)
+                minx = 5.0*np.floor(np.min(minxs)/5.0)
+                maxx = 5.0*np.ceil(np.max(maxxs)/5.0)
+                miny = 5.0*np.floor(np.min(minys)/5.0)
+                maxy = 5.0*np.ceil(np.max(maxys)/5.0)
  
         else:
 
@@ -1395,10 +1395,10 @@ class RadarData(RadarConfig.RadarConfig):
 
             else:
 
-                minx = np.floor(np.min(xlim))
-                maxx = np.ceil(np.max(xlim))
-                miny = np.floor(np.min(ylim))
-                maxy = np.ceil(np.max(ylim))
+                minx = 5.0*np.floor(np.min(xlim)/5.0)
+                maxx = 5.0*np.ceil(np.max(xlim)/5.0)
+                miny = 5.0*np.floor(np.min(ylim)/5.0)
+                maxy = 5.0*np.ceil(np.max(ylim)/5.0)
             
         self.co_gridlines(fig,ax,latlonyn=latlon,minx=minx,maxx=maxx,miny=miny,maxy=maxy,xlab=xlab,ylab=ylab)
         
