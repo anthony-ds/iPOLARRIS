@@ -1390,13 +1390,15 @@ def make_single_pplots(rdat,config,y=None):
                 
             print('')
         
-        print('\nDone! Saved to '+outdir)
+        print('Done! Saved to '+outdir)
         print('Moving on.\n')
  
  
     if config['q_rhi_multi'] and rdat.rtype.startswith('wrf'):
  
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating multi-panel RHIs for various MIXING RATIO vars by time.')
+        print('Plotting RHIs by time for variables '+str([rdat.names_uc[x] for x in list(filter(None,rdat.q_vars))])+'...')
+        
         if not config['latlon']:
             if not config['y'] == '': yvals = list(eval(str([config['y']])))
             else: yvals = rdat.data[rdat.y_name].values[0::50]

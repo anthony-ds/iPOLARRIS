@@ -1068,13 +1068,15 @@ class RadarData(RadarConfig.RadarConfig):
         ####### plotting limits getting set here ######
         if latlon:
 
+            self.cs_xaxis_latlon(ax,coords,lblsz,skipline=skipline)
+            
             if labels:
-                self.cs_xaxis_latlon(ax,coords,lblsz,skipline=skipline)
+                ax.set_xlabel('Transect Lat/Lon', fontsize=lblsz)
                 ax.set_ylabel('Altitude (km MSL)', fontsize=lblsz)
                 ax.tick_params(axis='both', which='major', labelsize=lblsz)
             else:
                 if xlab:
-                    self.cs_xaxis_latlon(ax,coords,lblsz,skipline=skipline)
+                    ax.set_xlabel('Transect Lat/Lon', fontsize=lblsz)
                     ax.tick_params(axis='x', which='major', labelsize=lblsz)
                 else:
                     ax.set_xticklabels([])
@@ -2119,7 +2121,12 @@ class RadarData(RadarConfig.RadarConfig):
                 pc = ax.pcolormesh(bins[0:-1], hts, cfad_ma, norm=norm, cmap=cmap)
             else:
                 pc = ax.pcolormesh(bins, hts, cfad_ma, vmin=0, vmax=maxval, norm=norm,cmap=cmap, **kwargs)
-      
+        
+        ax.set_xticks(self.cfticks[var])
+        ax.set_xlim(np.min(bins),np.max(bins))
+        ax.set_ylim(0,zmax)
+        ax.grid(color='grey', linestyle='-', linewidth=1) 
+        
         if xlab:
             ax.set_xlabel('%s %s' %(self.names_uc[var], self.units[var]),fontsize=16)
             ax.tick_params(axis='x',labelsize=16)
@@ -2134,10 +2141,6 @@ class RadarData(RadarConfig.RadarConfig):
         else: 
             ax.tick_params(axis='y',labelsize=0,left=False)
         
-        ax.set_xlim(np.min(bins),np.max(bins))
-        ax.set_ylim(0,zmax)
-        ax.grid(color='grey', linestyle='-', linewidth=1)
-
         return cfad_ma, hts, pc, fig, ax
 
 #############################################################################################################
@@ -3196,4 +3199,3 @@ class RadarData(RadarConfig.RadarConfig):
         x_ticks = np.arange(coord_pairs.shape[0])
         ax.set_xticks(x_ticks[int(np.floor(len(x_ticks)/6.0))::int(np.floor(len(x_ticks)/3.0))])
         ax.set_xticklabels((x_labels[int(np.floor(len(x_ticks)/6.0))::int(np.floor(len(x_ticks)/3.0))]), fontsize=lblsz-2)
-        ax.set_xlabel('Transect Lat/Lon', fontsize=lblsz)
