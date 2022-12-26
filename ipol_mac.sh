@@ -262,7 +262,7 @@ if [ ! -z $doppdir ]; then
             file=$(basename $filepath)  
             if [[ "$(ls $doppdir/* | head -n 1 | xargs basename)" == "wrfout"* ]]; then
                 filedt=$(echo $file | cut -d '_' -f4 | tr -d '-')$(echo $file | cut -d '_' -f5 | cut -d '.' -f1 | tr -d ':')
-            else
+            elif [[ "$(ls $doppdir/* | head -n 1 | xargs basename)" == *"_dopvel_"* ]]; then
                 filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
             fi
             if [ "$filedt" -ge "$(echo ${stt[ii]} | tr -d '_')00" ] && [ "$filedt" -lt "$(echo ${edt[ii]} | tr -d '_')00" ]; then 
