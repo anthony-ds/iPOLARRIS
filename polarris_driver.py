@@ -490,11 +490,11 @@ def polarris_driver(configfile):
       
         if config['type'].startswith('wrf'):
             unew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, unew)
-            unew = np.where(unew == -999.0, np.nan, unew)
+            #unew = np.where(unew == -999.0, np.nan, unew)
             vnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, vnew)
-            vnew = np.where(vnew == -999.0, np.nan, vnew)
+            #vnew = np.where(vnew == -999.0, np.nan, vnew)
             wnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, wnew)
-            wnew = np.where(wnew == -999.0, np.nan, wnew)
+            #wnew = np.where(wnew == -999.0, np.nan, wnew)
 
         rvar['u'] = (['d','z','y','x'],unew)
         rvar['v'] = (['d','z','y','x'],vnew)
