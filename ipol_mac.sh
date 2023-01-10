@@ -266,8 +266,10 @@ if [ ! -z $doppdir ]; then
                 filedt=$(echo $file | cut -d '_' -f3)$(echo $file | cut -d '_' -f4)
             fi
             if [ "$filedt" -ge "$(echo ${stt[ii]} | tr -d '_')00" ] && [ "$filedt" -lt "$(echo ${edt[ii]} | tr -d '_')00" ]; then 
-                echo $filepath >> $configdir/$tfile
-                echo $(basename $filepath)
+                if [[ $file == "wrfout"* ]] || [[ $file == *"_dopvel_"* ]]; then
+                    echo $filepath >> $configdir/$tfile
+                    echo $(basename $filepath)
+                fi
             fi
             if [ "$filedt" -ge "$(echo ${edt[ii]} | tr -d '_')00" ]; then
                 break
