@@ -954,7 +954,7 @@ class Sounding(UserDict):
                     try:
                         self.sounding_date = datetime.strptime(dstr, "%Y-%m-%d").strftime("%Y-%m-%d_%H:%M:%S") 
                     except ValueError:
-                        self.sounding_date = datetime.strptime(dstr, '"%Y-%m-%d_%H:%M:%S"').strftime("%Y-%m-%d_%H:%M:%S")
+                        self.sounding_date = datetime.strptime(dstr, "%Y-%m-%d_%H:%M:%S").strftime("%Y-%m-%d_%H:%M:%S")
                 
                 if self.station_name is not None: self.station = self.station_name
             
