@@ -261,6 +261,7 @@ def polarris_driver(configfile):
     else: print('Data Source: '+config['data'].upper())
     print('Start: '+config['sdatetime'])
     print('End: '+config['edatetime'])
+    print('')
     time.sleep(3)
 
     drop_vars = config['drop_vars']
@@ -271,6 +272,7 @@ def polarris_driver(configfile):
         allrfiles = f.read().splitlines()
         for rfile in allrfiles:
             fullname = os.path.basename(rfile)
+            print(fullname)
             try: filedatestr = re.search(r'\d{4}\d{2}\d{2}_\d{2}\d{2}\d{2}',fullname).group()
             except AttributeError: filedatestr = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}',fullname).group()
             filedatestr = filedatestr.replace('_','').replace(':','').replace('-','')
@@ -278,6 +280,7 @@ def polarris_driver(configfile):
             if int(filedate) >= int(sdatetime) and int(filedate) <= int(edatetime):
                 rfiles.append(rfile)
     
+    print('')
     if rfiles == []:
         print("\nOops! There is no radar data for the dates given in your config file. Exiting...\n")
         sys.exit(1)
@@ -495,7 +498,10 @@ def polarris_driver(configfile):
             #vnew = np.where(vnew == -999.0, np.nan, vnew)
             wnew = np.where(np.logical_or(elevs < float(config['mincosthresh']),elevs > float(config['maxcosthresh'])), np.nan, wnew)
             #wnew = np.where(wnew == -999.0, np.nan, wnew)
-
+    
+        print(np.nanmin(wnew))
+        print(np.nanmax(wnew))
+        input()
         rvar['u'] = (['d','z','y','x'],unew)
         rvar['v'] = (['d','z','y','x'],vnew)
         rvar['w'] = (['d','z','y','x'],wnew)
