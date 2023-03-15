@@ -189,13 +189,14 @@ else
         
         declare -a tmpsndfiles=()
 
+        sttstr=$(echo ${stt[ii]} | tr -d '_')00
+        edtstr=$(echo ${edt[ii]} | tr -d '_')00
+ 
         for filepath in $(ls $tempdir/* | sort); do
 
             file=$(basename $filepath)
             filedt=$(echo $file | cut -d '_' -f2 | tr -d '-')$(echo $file | cut -d '_' -f3 | cut -d '.' -f1 | tr -d ':')
-            sttstr=$(echo ${stt[ii]} | tr -d '_')00
-            edtstr=$(echo ${edt[ii]} | tr -d '_')00
-            
+           
             hrstdiff=$(( $(date -jf %Y%m%d%H%M%S "$filedt" +%s)-$(date -jf %Y%m%d%H%M%S "$sttstr" +%s) ))
             hrendiff=$(( $(date -jf %Y%m%d%H%M%S "$filedt" +%s)-$(date -jf %Y%m%d%H%M%S "$edtstr" +%s) ))
 
@@ -208,7 +209,22 @@ else
         
         done
 
-        if [ ! ${#tmpsndfiles[@]} -eq 2 ]; then
+        for filepath in $(ls $tempdir/* | sort); do
+    
+            if [[ ! " ${tmpsndfiles[*]} " =~ " $filepath " ]]; then
+                
+                file=$(basename $filepath)
+                filedt=$(echo $file | cut -d '_' -f2 | tr -d '-')$(echo $file | cut -d '_' -f3 | cut -d '.' -f1 | tr -d ':')
+                
+                if [[ "$filedt" -ge "sttstr" ]] && [[ "$filedt" -le "edtstr" ]]; then
+                    tmpsndfiles+=($filepath)
+                fi
+
+            fi
+
+        done
+
+        if [ ${#tmpsndfiles[@]} -lt 2 ]; then
             echo Insufficient soundings for study period. Check and pull more!
             echo
             exit 1
