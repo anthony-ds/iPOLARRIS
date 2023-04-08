@@ -10,7 +10,7 @@ import pyart
 
 class RadarConfig(object):
    
-    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', u='u', v='v',rr='RR', w='w',qc='qc',qr='qr',qg='qg',qh='qh',qi='qi',qs='qs',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,rr_on=False,hid_on=True,hid_cats = 'summer'):
+    def __init__(self, dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid = 'HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', eml='eML', u='u', v='v',rr='RR', w='w',qc='qc',qr='qr',qg='qg',qh='qh',qi='qi',qs='qs',vr='VR',exper = 'Case',rtype='obs',rsrc='nexrad',band = 'C',lat_0 = 0,lon_0=90.0,lat_r=None,lon_r=None,lat=None,lon=None,tm = None,radar_name = None,color_blind = False,dd_on=False,rr_on=False,hid_on=True,hid_cats = 'summer'):
         
         # ******** first the polarimetric stuff *************
        
@@ -99,13 +99,13 @@ class RadarConfig(object):
         self.date = tm
         self.radar_name = radar_name
         
-        if hid_cats.startswith('winter'):
-            self.species = np.array(['DZ','RN','IC','AG','WS','PL','DR'])
-            #self.species = np.array(['IC','PL','DR','AG','WS','DZ','RN'])
-            self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggregates','Wet\nSnow','Plates','Dendrites'])
-            #self.species_long = np.array(['Ice\nCrystals','Plates','Dendrites','Snow\nAggregates','Wet\nSnow','Drizzle','Rain'])
-            self.hid_colors = ['LightBlue','Blue','DarkOrange','Pink','Cyan','Purple','Fuchsia']
-            #self.hid_colors = ['Orange','Purple','Fuchsia','Pink','Cyan','LightBlue', 'Blue']
+        if hid_cats.startswith('winter'):     
+            #self.species = np.array(['DZ','RN','IC','AG','WS','PL','DR'])
+            self.species = np.array(['IC','PL','DR','AG','WS','DZ','RN'])
+            #self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggregates','Wet\nSnow','Plates','Dendrites'])
+            self.species_long = np.array(['Ice\nCrystals','Plates','Dendrites','Snow\nAggregates','Wet\nSnow','Frozen\nPrecipitation','Rain'])
+            #self.hid_colors = ['LightBlue','Blue','DarkOrange','Pink','Cyan','Purple','Fuchsia']
+            self.hid_colors = ['DarkOrange','Purple','Fuchsia','Pink','Cyan','LightBlue', 'Blue']
         else:
             self.species = np.array(['DZ','RN','CR','AG','WS','VI','LDG','HDG','HA','BD'])
             self.species_long = np.array(['Drizzle','Rain','Ice\nCrystals','Snow\nAggre-\ngates','Wet\nSnow','Vertical\nIce','Low-\nDensity\nGraupel','High-\nDensity\nGraupel','Hail','Big\nDrops'])
@@ -139,8 +139,8 @@ class RadarConfig(object):
         self.water_vars = [self.qr_name,self.rr_name if self.rr_on else None,self.hid_name if self.hid_on else None] #Mixing ratios from model to plot.
 
         # Now just set some defaults
-        self.lims = {self.dz_name: [0,80], self.zdr_name: [-1, 3], self.kdp_name: [-0.5, 3], self.ldr_name: [-35, -20], self.rho_name: [0.95, 1.00], self.hid_name: [0,len(self.species)+1],self.u_name: [-20,80],self.w_name:[-10,10],self.vr_name:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30],self.qc_name:[0.0,2.0],self.qr_name:[0.0,2.0],self.qg_name:[0.0,2.0],self.qh_name:[0.0,2.0],self.qi_name:[0.0,2.0],self.qs_name:[0.0,2.0]}
-        self.cfbins = {self.dz_name: np.arange(-10,60,1), self.zdr_name: np.arange(-2,6,0.05), self.kdp_name: np.arange(-2,2,0.05), self.rho_name: np.arange(0.5,1.01,0.02), self.hid_name: '' , self.u_name: np.arange(-20,80,2), self.w_name: np.arange(-10,10,0.5), self.temp_name: np.arange(20,-60,-5)} 
+        self.lims = {self.dz_name: [0,80], self.zdr_name: [-1, 3], self.kdp_name: [-0.5, 3], self.ldr_name: [-35, -20], self.rho_name: [0.95, 1.00], self.hid_name: [0,len(self.species)+1],self.u_name: [-20,80],self.w_name:[-2,2],self.vr_name:[-25,25],self.cs_name:[0,4],self.rr_name:[0,30],self.temp_name:[-30,30],self.qc_name:[0.0,2.0],self.qr_name:[0.0,2.0],self.qg_name:[0.0,2.0],self.qh_name:[0.0,2.0],self.qi_name:[0.0,2.0],self.qs_name:[0.0,2.0]}
+        self.cfbins = {self.dz_name: np.arange(-10,60,1), self.zdr_name: np.arange(-2,6,0.05), self.kdp_name: np.arange(-2,2,0.05), self.rho_name: np.arange(0.5,1.01,0.02), self.hid_name: '' , self.u_name: np.arange(-20,80,2), self.w_name: np.arange(-2,2,0.5), self.temp_name: np.arange(20,-60,-5)} 
         self.cfticks = {self.dz_name: np.linspace(-10,60,8), self.zdr_name: np.linspace(-2,6,9), self.kdp_name: np.linspace(-2,2,5), self.rho_name: np.linspace(0.95,1,6), self.hid_name: '' , self.u_name: np.linspace(-20,80,6), self.w_name: np.linspace(-6,6,7), self.temp_name: np.linspace(20,-60,5)} 
         self.delta = {self.dz_name: 10, self.zdr_name: 1, self.kdp_name: 1, self.ldr_name: 5, self.rho_name: 0.005, self.hid_name: 1,self.w_name:5,self.vr_name:5,self.cs_name:1,self.rr_name:10,self.temp_name:5}
         self.units = {self.dz_name: '(dBZ)', self.zdr_name: '(dB)', self.kdp_name: '($^{\circ}$ km$^{-1}$)', self.ldr_name: '(dB)', self.rho_name: '', self.hid_name: '', self.u_name: '(m s$^{-1}$)', self.w_name:'(m s$^{-1}$)',self.vr_name:'(m s$^{-1}$)',self.cs_name:'',self.rr_name:'(mm hr$^{-1}$)',self.temp_name:'($^{\circ}$C)',self.qc_name:'(g kg$^{-1}$)',self.qr_name:'(g kg$^{-1}$)',self.qg_name:'(g kg$^{-1}$)',self.qh_name:'(g kg$^{-1}$)',self.qi_name:'(g kg$^{-1}$)',self.qs_name:'(g kg$^{-1}$)'}
