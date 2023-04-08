@@ -153,6 +153,8 @@ def _populate_vars(dz, zdr, kdp, rho, ldr, T, verbose):
     for i, key in enumerate(keylist):
         var = varlist[i]
         if var is not None:
+            if np.count_nonzero(np.isnan(var)) > 0:
+                var = np.nan_to_num(var,nan=-9999)
             if key == 'DZ':
                 shp = np.shape(var)
                 sz = np.size(var)
