@@ -48,13 +48,13 @@ import csu_fhc
 import RadarConfig
 # Up here are just some general functions
 
-np.set_printoptions(threshold=sys.maxsize)
+#np.set_printoptions(threshold=sys.maxsize)
 
 class RadarData(RadarConfig.RadarConfig): 
 
-    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', u='u', v='v', w='w', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',rtype='obs',rsrc='nexrad',lat_r=None,lon_r=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,dd_on=False,rr_on=False,hid_on=True,hid_cats='summer'): 
+    def __init__(self, data,times, ddata = None,dz='DZ', zdr='DR', kdp='KD', ldr='LH', rho='RH', hid='HID',conv='Con',temp='T', x='x', y='y', z='z', z3d='z3d', eml='eML', u='u', v='v', w='w', rr='RR',vr='VR',lat=None, lon=None, band='C',exper='CASE',rtype='obs',rsrc='nexrad',lat_r=None,lon_r=None,dd_data = None,z_thresh=-10.0,cs_z = 2.0,zconv = 41.,zdr_offset=0, remove_diffatt = False,lat_0 = 0.0,lon_0=90.0,conv_types = ['CONVECTIVE'],strat_types = ['STRATIFORM'],mixed_types = ['UNCERTAIN'],mixr=['qr','qs','qc','qi','qh','qg'],return_scores=False,color_blind=False,dd_on=False,rr_on=False,hid_on=True,hid_cats='summer'): 
 
-        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, z3d=z3d, u=u, v=v, w=w,rr=rr,vr=vr,exper=exper,rtype=rtype,rsrc=rsrc,lat=lat,lon=lon,tm = times,color_blind=color_blind,dd_on=dd_on,hid_on=hid_on,rr_on=rr_on,hid_cats=hid_cats)
+        super(RadarData, self).__init__(dz=dz, zdr=zdr, kdp=kdp, ldr=ldr, rho=rho, hid=hid, conv=conv,temp=temp, x=x, y=y,lat_0=lat_0,lon_0=lon_0,lat_r=lat_r,lon_r=lon_r, z=z, z3d=z3d, eml=eml, u=u, v=v, w=w,rr=rr,vr=vr,exper=exper,rtype=rtype,rsrc=rsrc,lat=lat,lon=lon,tm = times,color_blind=color_blind,dd_on=dd_on,hid_on=hid_on,rr_on=rr_on,hid_cats=hid_cats)
 
         # ********** initialize the data *********************
 #        self.data = {} 
@@ -605,7 +605,8 @@ class RadarData(RadarConfig.RadarConfig):
         if hid_on:
 
             start = time.time()
-            self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores,classify='summer')
+            print(classify)
+            self.set_hid(use_temp = 'True',band=self.band,zthresh = self.z_thresh,return_scores=self.return_scores,classify=classify) #'summer')
             print('HID runtime = '+str(time.time()-start))
         
         if mode == 'obs':
@@ -646,6 +647,8 @@ class RadarData(RadarConfig.RadarConfig):
         scores=[]
         print ("Unfortunately need to run HID by time")
         for v in tqdm(range(len(self.data[self.dz_name]))):
+            print(v)
+            print(classify)
             dzhold =np.squeeze(self.data[self.dz_name].sel(d=v)).values
 #             drhold =np.squeeze(self.data[self.zdr_name].sel(d=v)).values
 #             kdhold = np.squeeze(self.data[self.kdp_name].sel(d=v)).values
@@ -663,10 +666,21 @@ class RadarData(RadarConfig.RadarConfig):
             #print('You have entered hid band:',self.hid_band, 'ln 624 RadarData')
             if classify.startswith('summer'):
                 hiddum = csu_fhc.csu_fhc_summer(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
-
+            
             elif classify.startswith('winter'):
-                hiddum = csu_fhc.csu_fhc_winter(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
-                
+                dz = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.dz_name].sel(d=v)).values))
+                dr = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.zdr_name].sel(d=v)).values))
+                kd = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.kdp_name].sel(d=v)).values))
+                rh = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.rho_name].sel(d=v)).values))
+                #radardata = Dataset('/Users/adistefano/build/CSU_RadarTools/tests/KLGX_20151113_030447_V06.nc')
+                #dz = np.squeeze(np.ma.masked_array(radardata['REF'][:]))
+                #dr = np.squeeze(np.ma.masked_array(radardata['ZDR'][:]))
+                #kd = np.squeeze(np.ma.masked_array(radardata['KDP'][:]))
+                #rh = np.squeeze(np.ma.masked_array(radardata['RHO'][:]))
+                ml = np.squeeze(self.data['eml'].sel(d=v)).values
+                ht = np.squeeze(self.data['z3d'].sel(d=v)).values 
+                #hiddum = csu_fhc.run_winter(dz=np.squeeze(self.data[self.dz_name].sel(d=v)).values, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, heights=np.squeeze(self.data['z3d'].sel(d=v)).values, sn=np.squeeze(self.data['SNR'].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
+                hiddum = csu_fhc.run_winter(dz=dz, zdr=dr, rho=rh, kdp=kd, expected_ML=ml, heights=ht, band=self.hid_band, sn=None, use_temp=True, T=tdum.values, return_scores=False, scan_type='grid', verbose=True)
 #            scores.append(scoresdum)
             #hiddum = np.argmax(scoresdum,axis=0)+1
 #            print(np.shape(tdum),'tdum')
@@ -2514,10 +2528,9 @@ class RadarData(RadarConfig.RadarConfig):
             fig = ax.get_figure()
 
         multiple = int(z_resolution/self.dz)
-        
         for i in tqdm(np.arange(0,len(hgt),multiple)):
             ax.barh(hgt[i],data[0,i],left=0.,align='center',height=z_resolution,color=self.hid_colors[0],edgecolor='k')
-            for spec in range(1, len(self.species)):
+            for spec in range(1,len(self.species)):
                 ax.barh(hgt[i],data[spec,i],left=data[spec-1,i],align='center',height=z_resolution,color=self.hid_colors[spec],edgecolor='k')
 
         ax.set_xlim(0,100)
