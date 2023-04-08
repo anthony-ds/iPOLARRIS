@@ -255,7 +255,6 @@ def polarris_driver(configfile):
     # =====
     # (2) Find input radar files and concatenate the data. Rename x, y, z variables. 
     # =====
-
     print('Station/experiment: '+config['exper'])
     if config['type'].startswith('wrf'): print('MP Scheme: '+config['data'].upper())
     else: print('Data Source: '+config['data'].upper())
@@ -324,7 +323,7 @@ def polarris_driver(configfile):
        
         rvar = rvar.reset_coords(['lat0','lon0'])
         rvar = rvar.set_coords(['XLAT','XLONG'])
-
+    
     elif config['type'].startswith('wrf'):
        
         currx = deepcopy(rvar['x'].values)
@@ -367,7 +366,6 @@ def polarris_driver(configfile):
             newvals = np.where(np.isnan(refvals),np.nan,newvals)
             newvar = xr.DataArray(newvals, dims=['d','z','y','x'], name=v)
             rvar[v] = newvar
- 
         qvars = ['qc', 'qr', 'qi', 'qs', 'qg', 'qh']
         for v in qvars:
             qvals = deepcopy(rvar[v].values)
@@ -546,19 +544,24 @@ def polarris_driver(configfile):
 
             tnew = np.zeros([rvar.dims['d'],rvar.dims['z'],rvar.dims['y'],rvar.dims['x']])
             tnew.fill(np.nan)
+            eml = []
             for jj in range(len(tm)):
                 sfile = smatch[rfiles[jj]]
                 snd = SkewT.Sounding(sfile)
+                wh0 = np.where(np.isclose(np.abs(snd['temp']),0.0,atol=1.0))
+                expected_ML = np.array(snd['hght'])[wh0[0]][0]/1000.
                 #rdata.add_sounding_object(snd) # this will add the sounding object to the radar object and then will take the heights and temps
                 #rdata.interp_sounding()
                 tnew[jj,:,:,:] = np.interp(hnew[jj,:,:,:],snd.data['hght']/1000.0,snd.data['temp'])
+                eml.append(expected_ML)
             newt = xr.DataArray(tnew, dims=['d','z','y','x'], name='T')
             rvar['T'] = newt
+            eml = xr.DataArray(eml, dims=['d'], name='eml')
+            rvar['eml'] = eml
         else:
             print('No soundings available for this study period. Exiting gracefully.')
             sys.exit(1)
-
-   
+    
     if config['type'].startswith('obs') or config['type'].startswith('wrf'):
         rdata = RadarData.RadarData(rvar,tm,ddata = None,band = config['band'],lat_r=config['lat'],lon_r=config['lon'],lat_0=config['lat'],lon_0=config['lon'],exper=config['exper'],rtype=config['type'],rsrc=config['data'],z_thresh=0,conv_types=config['conv_types'],strat_types=config['strat_types'],color_blind=config['cb_friendly'],dd_on=config['dd_on'],rr_on=config['rr_on'],hid_on=config['hid_on'],hid_cats=config['hid_cols'])
     else:
@@ -568,7 +571,7 @@ def polarris_driver(configfile):
         print('masking model data')
         rdata.mask_model()
    
-    hid_on,qr_on,rr_on = False if config['hid_on'] == '' else True, False if config['qr_on'] == '' else True, False if config['rr_on'] == '' else True
+    hid_on,qr_on,rr_on = False if config['hid_on'] == '' else True, False if config['qr_on'] == '' else True, False if config['rr_on'] == '' else True 
     rdata.calc_pol_analysis(tm,hid_on,qr_on,rr_on,rr_dir=config['rr_dir'],mode=config['type'],classify=config['hid_cols']) # HCA, RR, QR
     
     if not config['cs_z'] == '':
