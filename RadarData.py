@@ -665,8 +665,13 @@ class RadarData(RadarConfig.RadarConfig):
                tdum = None
             #print('You have entered hid band:',self.hid_band, 'ln 624 RadarData')
             if classify.startswith('summer'):
-                hiddum = csu_fhc.csu_fhc_summer(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
-            
+                #hiddum = csu_fhc.csu_fhc_summer(dz=dzhold, zdr=np.squeeze(self.data[self.zdr_name].sel(d=v)).values, rho=np.squeeze(self.data[self.rho_name].sel(d=v)).values, kdp=np.squeeze(self.data[self.kdp_name].sel(d=v)).values, band=self.hid_band, use_temp=True, T=tdum, return_scores=self.return_scores)
+                dz = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.dz_name].sel(d=v)).values))
+                dr = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.zdr_name].sel(d=v)).values))
+                kd = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.kdp_name].sel(d=v)).values))
+                rh = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.rho_name].sel(d=v)).values))
+                hiddum = csu_fhc.csu_fhc_summer(dz=dz, zdr=dr, rho=rh, kdp=kd, use_temp=True,T=tdum, band=self.hid_band, verbose=False,use_trap=True,method='linear')#,fdir ='/home/bdolan/python/CSU_RadarTools/csu_radartools/beta_function_parameters/')
+ 
             elif classify.startswith('winter'):
                 dz = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.dz_name].sel(d=v)).values))
                 dr = np.squeeze(np.ma.masked_array(np.squeeze(self.data[self.zdr_name].sel(d=v)).values))
@@ -1321,6 +1326,7 @@ class RadarData(RadarConfig.RadarConfig):
             data = np.ma.masked_where(data <= 0.0,data)
 
         if ax is None:
+            returnfigax = True
             if latlon: 
                 fig = plt.figure(figsize=(10,8))
                 ax = fig.add_subplot(111, projection=ccrs.Mercator())
@@ -1328,6 +1334,7 @@ class RadarData(RadarConfig.RadarConfig):
                 fig = plt.figure(figsize=(10,8))
                 ax = fig.add_subplot(111)      
         else:
+            returnfigax = False
             fig = ax.get_figure()
         
         if var in self.lims.keys():
@@ -1454,7 +1461,11 @@ class RadarData(RadarConfig.RadarConfig):
             ax.set_title('%s %s CAPPI %.1f km MSL' %(ts, self.band+'-band', \
                     hts[z_ind]), fontsize = 14)
 #        print type(dummy),dummy
-        return dummy,[minx,maxx],[miny,maxy]
+        
+        if returnfigax:
+            return fig, ax
+        else:
+            return dummy, [minx,maxx], [miny,maxy]
 
 #############################################################################################################
 
