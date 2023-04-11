@@ -1122,7 +1122,7 @@ def make_single_pplots(rdat,config,y=None):
         print('IN PLOT_DRIVER.MAKE_SINGLE_PLOTS... creating individual CAPPIs for various polarimetric vars.')
         print('Plotting CAPPIs by time...\n')
  
-        if not config['z'] == '': zspan = list(eval(str([config['z']])))
+        if not config['z'] == '': zspan = config['z']
         else: zspan = rdat.data[rdat.z_name].values
 
         allvars = list(filter(None,rdat.cappi_vars))
@@ -1153,13 +1153,13 @@ def make_single_pplots(rdat,config,y=None):
                         
                         ax.text(0, 1, '{e} {r}'.format(e=rdat.exper,r=rdat.band+'-band'), horizontalalignment='left', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
                         ax.text(1, 1, '{d:%Y-%m-%d %H:%M:%S} UTC'.format(d=ts), horizontalalignment='right', verticalalignment='bottom', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes) # (a) Top-left
-                        ax.text(0.99, 0.99, 'z = {a} km'.format(a=config['z']), horizontalalignment='right',verticalalignment='top', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
+                        ax.text(0.99, 0.99, 'z = {a} km'.format(a=z), horizontalalignment='right',verticalalignment='top', size=16, color='k', zorder=10, weight='bold', transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='none', pad=0.0))
                         
                         if not config['ptype'].startswith('mp4'):
-                            plt.savefig('{i}{e}_{v}_individ_cappi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=config['z'],t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                            plt.savefig('{i}{e}_{v}_individ_cappi_{t:%Y%m%d_%H%M%S}_{h}.{p}'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=z,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
                         else: 
                             if len(rdat.date) < 6:
-                                plt.savefig('{i}{e}_{v}_individ_cappi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=config['z'],t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
+                                plt.savefig('{i}{e}_{v}_individ_cappi_{t:%Y%m%d_%H%M%S}_{h}.png'.format(p=config['ptype'],i=outdir,e=rdat.exper,h=z,t=ts,v=rdat.names_uc[v]),dpi=400,bbox_inches='tight')
                             else:
                                 plt.savefig(outdir+'/fig'+str(ii).zfill(3)+'.png',dpi=400,bbox_inches='tight')
                         
