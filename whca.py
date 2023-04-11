@@ -148,21 +148,27 @@ rh = np.squeeze(np.ma.masked_array(radardata['RHO'][:]))
 
 hcawinter = csu_fhc.run_winter(dz=dz,zdr=dr,kdp=kd,rho=rh, expected_ML=expected_ML,sn=None,T=radar_T,heights=rheights, scan_type = scan_type,verbose=True,use_temp = use_temp, band=rband, return_scores=return_scores)
 
-print(np.min(hcawinter))
-print(np.max(hcawinter))
-
 ###Let's see what we got.
-fig, ax = plt.subplots(1,3,figsize=(16,4))
+fig, ax = plt.subplots(2,3,figsize=(16,8))
 axf=ax.flatten()
 
-axf[0].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[0,...],cmap=cmaphidwinter,vmin=-1,vmax=7)
+axf[0].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[0,...],cmap=cmaphidwinter,vmin=0,vmax=7)
 axf[0].set_title(f'HCA at {z[0]} km')
 
-axf[1].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[3,...],cmap=cmaphidwinter,vmin=-1,vmax=7)
+axf[1].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[3,...],cmap=cmaphidwinter,vmin=0,vmax=7)
 axf[1].set_title(f'HCA at {z[3]} km (melting layer)')
 
-c = axf[2].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[6,...],cmap=cmaphidwinter,vmin=-1,vmax=7)
+axf[2].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[6,...],cmap=cmaphidwinter,vmin=0,vmax=7)
 axf[2].set_title(f'HCA at {z[6]} km')
+
+axf[3].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[9,...],cmap=cmaphidwinter,vmin=0,vmax=7)
+axf[3].set_title(f'HCA at {z[9]} km')
+
+axf[4].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[12,...],cmap=cmaphidwinter,vmin=0,vmax=7)
+axf[4].set_title(f'HCA at {z[12]} km')
+
+c = axf[5].pcolormesh(radardata['x0'],radardata['y0'],hcawinter[15,...],cmap=cmaphidwinter,vmin=0,vmax=7)
+axf[5].set_title(f'HCA at {z[15]} km')
 
 for i in axf:
     cb =plt.colorbar(c,ax =i)
@@ -170,4 +176,4 @@ for i in axf:
     cb.set_ticks([1,2,3,4,5,6,7]) #,8,9,10])
     cb.set_ticklabels(labelhca)
 
-fig.savefig('ipol_test.png')
+fig.savefig('ipol_winter.png')
