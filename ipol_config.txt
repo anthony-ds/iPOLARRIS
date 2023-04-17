@@ -1,0 +1,112 @@
+####################################################
+#################### MY_CONFIG.TXT #################
+####################################################
+
+type ==  == # Type of input data: 'obs' OR 'wrf' (obs + simulated)
+data ==  == # Radar data source if type = 'obs' or model microphysics scheme if type = 'wrf'
+ptype ==  == # Output figure file extenstion (i.e. png, jpg, mp4, ...)
+
+cb_friendly	== True == # Use color-blindness palette for output (i.e. reflectivity)
+
+latlon == False == # Output plots on Cartopy basemap if True
+
+xlim ==  == #lat / lon zoom for CAPPIS
+#xlim == [-127,-123] ==
+#xlim == [-150,150] == #lat / lon zoom for CAPPIS
+ylim ==  == #lat / lon zoom for CAPPIS
+#ylim == [45,49] ==
+#ylim == [-150,150] == #lat / lon zoom for CAPPIS
+zmax == 10 ==
+
+lat1 == 46.5 == # First latitudes
+lon1 == -125.0 == # First longitudes
+lat2 == 47.5 == # Second latitudes
+lon2 == -123.5 == # Second longitudes
+
+y == 0.5 == # Lat of the y cross-section for RHI
+z == [0.5,2.5,3.5,6.5] == # Height of the CAPPIs
+#z == 3.5 == # Height of the CAPPIs
+z_resolution == 0.5 == # Vertical resolution for CFADs.
+
+sdatetime ==  == # Start time of analysis of interest
+edatetime ==  == # End time of analysis of interest
+rfiles ==  == # Input directory of radar files to read in
+sfiles ==  == # Sounding file directory
+wfiles ==  == # Sounding file directory
+dfiles ==  == # Location of dual-Doppler files
+image_dir ==  == # Output figure directory
+rr_dir ==  == # Output rain rate netcdf directory
+
+exper ==  == # Radar location
+lat ==  == # Latitude of the radar station
+lon ==  == # Longitude of the radar station
+mincosthresh ==  == # Min. threshold for simulated cone of silence
+maxcosthresh ==  == # Max. threshold for simulated cone of silence
+band ==  == # Radar band: X, C OR S. Note: needs to be capital letter.
+dx ==  == # x-grid spacing
+dy ==  == # y-grid spacing
+map_proj ==  == # Radar/WRF map projection
+truelat1 ==  == # First true latitude
+truelat2 ==  == # Second true latitude
+stand_lon ==  == # Standard longitude
+
+snd_on ==  == # Set this to use UWYO soundings for temperature
+wrft_on ==  == # Set this to loop through wrfouts for temperature
+hid_on == True == # Set to True to run HID computation
+hid_cols == winter == # Set to summer or winter for HID categories
+dd_on ==  == # Set this to loop through separate dual-Doppler files
+qr_on ==  == # Set to True to run QR computation
+rr_on ==  == # Set to True to run RR computation and output to netcdf
+cs_z ==  == # Set to altitude (km) (e.g. 2) for determining convective / stratiform designation.
+
+#----------------------------------------------------------
+#------ Output Flags (what to print) if type = 'obs' ------
+#----------------------------------------------------------
+
+# Plots created in run_ipolarris.py
+compo_ref	    == False	    == # 1) Set to True to plot for spatial composite reflectivity plotting (1 figure per timestep)
+cappi_rr	    == True	    == # 3) Set to True to plot rain rate CAPPI at some altitude z (set z below) 
+rr_timeseries	== False	    == # 4) Set to True to plot a time series of convective and stratiform rain rate
+vv_profiles	    == False	    == # 5) Set to True to plot vertical profiles of the 50th, 90th and 99th percentile of updraft, downdrafts and overall vertical velocity
+vert_ref	    == False	    == # 5) Set to True to plot vertical profile of reflectivity with height
+refcfad		    == False	    == # 6) Set to True to plot CFAD of reflectivity with height
+
+# Text files created in run_ipolarris.py
+rrstats_txt		    == False	    == # 7)
+rrhist_txt		    == False	    == # 8)
+rrstats_areas_txt	== False	    == # 9)
+percentiles_txt		== False	    == # 10)
+
+# Plots created in plot_driver.py
+pol_compare		    == False	    == # 13) Set to True to plot 4-panel of CFADs of Z, ZDR, KDP and W
+hist_multi		    == False	    == # 15) Set to True to plot 4-panel of comparison figures between various polarimetric vars
+cfad_multi		    == False	        == # 13) Set to True to plot x-panel of CFADs for x polarimetric variables
+cfad_individ		== False 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
+cfad_compare		== True 	    == # 16) Set to True to plot separate images for Z, ZDR, KDP, W, RHO and HID
+hid_prof		    == False	    == # 17) Set to True to plot vertical profile of grouped HID species with height
+up_width		    == False	    == # 18) Set to True to plot vertical profile of updraft width with temperature.
+cappi_multi		    == False	    == # 19) Set to True to plot x-panel of CAPPIs for x polarimetric variables at some altitude z (set z below; 1 figure per timestep)
+cappi_individ	    == True	    == # 20) Set to True to plot a CAPPI for x individual polarimetric variables at some altitude z (set z below; 1 figure per timestep)
+rhi_multi		    == False	    == # 21) Set to True to plot x-panel of RHIs for x polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
+rhi_individ		    == False	    == # 22) Set to True to plot an RHI for x individual polarimetric variables at some latitude/N-S distance from the radar y (set y below; 1 figure per timestep)
+
+# Model Only
+q_cappi_multi		    == True	== # FK) Make cappi cross section of mixing ratios. change parameters in plot_driver.py (only valid for model)
+q_rhi_multi			    == True	== # FL) Make rhis of the mixing ratios (only valid for model)
+
+refthresh == -20. ==#Threshold for good data
+wthresh == 5.                         ==#Threshold for 'updraft' statistics.
+zconv == 40                         ==#Zconv threshold in raintyping algorithm.
+conv_types == ['ISO_CONV_CORE','CONVECTIVE','ISO_CS_CORE']      ==#Which Powell et al. types to consider in convective CFADS
+strat_types == ['WEAK_ECHO','STRATIFORM','ISO_CONV_FRINGE']     ==#Which Powell et al. types to consider in stratiform CFADS
+mixed_types == ['UNCERTAIN']                                    ==#Which types to not include in either convective or stratiform but will be considered in totals).
+zdr_offset == 0.6                    ==#Add any Zdr offset here. Value will be SUBTRACTED from the zdr values.
+mask_model == False ==
+drop_vars == False ==
+cvectors == [None,None,None,None,None,True]                          ==#Turn on vectors in the plots.
+rvectors == [None,None,None,None,None,True]                          ==#Turn on vectors in the plots.
+skip == 2                                  ==#Number of vectors to skip for the vector plots.
+comb_vicr == True                       ==# Combine VI with CR for plotting.
+cappi_contours == ['CS',None,None,None,None,None]   ==#What contours to apply to the CAPPI images.
+cappi_vectres == 5               ==#Defined the vector skip for cappi plots.
+rhi_vectres == [6,2]             ==#Defines the [x,z] skip for rhi plots
